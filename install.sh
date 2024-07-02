@@ -29,7 +29,7 @@ echo ""
 
 #sudo sh -c "echo export PATH=$PATH:/usr/local/astrometry/bin >> /etc/profile"
 
-cd /efinder/venv-efinder/lib/python3.11/site-packages/tetra3
+cd /home/efinder/venv-efinder/lib/python3.11/site-packages/tetra3
 sudo wget https://cdsarc.u-strasbg.fr/ftp/cats/I/239/hip_main.dat
 
 
