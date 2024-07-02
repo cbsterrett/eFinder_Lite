@@ -63,7 +63,7 @@ echo ""
 cp /home/efinder/eFinder_Lite/Solver/*.* /home/efinder/Solver
 cp /home/efinder/eFinder_Lite/Solver/de421.bsp /home/efinder
 cp /home/efinder/eFinder_Lite/Solver/starnames.csv /home/efinder/Solver/data
-cp /home/efinder/eFinder_Lite/Solver/generate_database.py /home/venv-efinder/lib/python3.11/site-packages/tetra3
+cp /home/efinder/eFinder_Lite/Solver/generate_database.py /home/efinder/venv-efinder/lib/python3.11/site-packages/tetra3
 
 wget https://github.com/joan2937/lg/archive/master.zip
 unzip master.zip
@@ -71,6 +71,8 @@ cd lg-master
 sudo make install
 sudo apt install -y python3-rpi-lgpio
 
+cd /home/efinder/Solver
+unzip drive.zip
 # add crontab -e edit
 # add samba?
 
