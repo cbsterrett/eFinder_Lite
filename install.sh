@@ -73,13 +73,36 @@ sudo apt install -y python3-rpi-lgpio
 
 cd /home/efinder/Solver
 unzip drive.zip
+
+cd $HOME
+
+sudo apt install -y samba samba-common-bin
+sudo tee -a /etc/samba/smb.conf > /dev/null <<EOT
+[efindershare]
+path = /home/efinder
+writeable=Yes
+create mask=0777
+directory mask=0777
+public=no
+EOT
+
+username="efinder"
+pass="efinder"
+(echo $pass; sleep 1; echo $pass) | sudo smbpasswd -a -s $username
+
+sudo systemctl restart smbd#echo "[efindershare]" | sudo tee -a /etc/samba/smb.conf > /dev/null
+#echo "path = /home/efinder" | sudo tee -a /etc/samba/smb.conf > /dev/null
+#echo "writeable=Yes" | sudo tee -a /etc/samba/smb.conf > /dev/null
+#echo "create mask=0777" | sudo tee -a /etc/samba/smb.conf > /dev/null
+#echo "directory mask=0777" | sudo tee -a /etc/samba/smb.conf > /dev/null
+#echo "public=no" | sudo tee -a /etc/samba/smb.conf > /dev/null
+
 # add crontab -e edit
-# add samba?
 
 sudo raspi-config nonint do_boot_behaviour B2
 sudo raspi-config nonint do_hostname efinder
 sudo raspi-config nonint do_ssh 0
-sudo raspi-config nonint do_serial_hw 1
+sudo raspi-config nonint do_serial_hw 0
 sudo raspi-config nonint do_spi 0
 sudo raspi-config nonint do_i2c 0
 
