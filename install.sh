@@ -69,7 +69,7 @@ wget https://github.com/joan2937/lg/archive/master.zip
 unzip master.zip
 cd lg-master
 sudo make install
-sudo apt install python3-rpi-lgpio
+sudo apt install -y python3-rpi-lgpio
 
 # add crontab -e edit
 # add samba?
