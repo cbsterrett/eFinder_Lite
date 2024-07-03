@@ -4,13 +4,13 @@ echo "eFinder install"
 echo " "
 echo "*****************************************************************************"
 echo "Updating Pi OS & packages"
-
+echo "*****************************************************************************"
 sudo apt update
 sudo apt upgrade -y
-
+echo " "
 echo "*****************************************************************************"
 echo "Installing additional Debian and Python packages"
-
+echo "*****************************************************************************"
 sudo apt install -m -y python3-pip
 sudo apt install -y python3-serial
 sudo apt install -y python3-psutil
@@ -20,10 +20,10 @@ sudo apt install -y git
 sudo apt install -y python3-smbus
 
 HOME=/home/efinder
+echo " "
 echo "*****************************************************************************"
 echo "Installing new astrometry packages"
-
-
+echo "*****************************************************************************"
 sudo apt install -y python3-skyfield
 sudo apt install -y python3-pil.imagetk
 
@@ -32,23 +32,17 @@ venv-efinder/bin/python venv-efinder/bin/pip install git+https://github.com/esa/
 venv-efinder/bin/python venv-efinder/bin/pip install adafruit-circuitpython-adxl34x
 
 cd $HOME
-
-echo ""
-
-cd $HOME
+echo " "
 echo "*****************************************************************************"
 echo "Downloading eFinder_Lite from AstroKeith GitHub"
-
+echo "*****************************************************************************"
 sudo -u efinder git clone https://github.com/AstroKeith/eFinder_Lite.git
-
-cd eFinder_Lite
-
+echo " "
 echo "*****************************************************************************"
 echo "Installing ASI camera support"
-
-tar xf ASI_linux_mac_SDK_V1.31.tar.bz2
+echo "*****************************************************************************"
+cd eFinder_Litetar xf ASI_linux_mac_SDK_V1.31.tar.bz2
 cd ASI_linux_mac_SDK_V1.31/lib
-
 sudo mkdir /lib/zwoasi
 sudo mkdir /lib/zwoasi/armv8
 sudo cp armv8/*.* /lib/zwoasi/armv8
@@ -56,33 +50,33 @@ sudo install asi.rules /lib/udev/rules.d
 cd $HOME
 venv-efinder/bin/python venv-efinder/bin/pip install zwoasi
 
-cd $HOME
-
 echo "tmpfs /var/tmp tmpfs nodev,nosuid,size=10M 0 0" | sudo tee -a /etc/fstab > /dev/null
-
+echo " "
 echo "*****************************************************************************"
 echo "Installing required packages"
-
+echo "*****************************************************************************"
 mkdir /home/efinder/Solver
 mkdir /home/efinder/Solver/images
 mkdir /home/efinder/Solver/data
 
-echo ""
 cp /home/efinder/eFinder_Lite/Solver/*.* /home/efinder/Solver
 cp /home/efinder/eFinder_Lite/Solver/de421.bsp /home/efinder
 cp /home/efinder/eFinder_Lite/Solver/starnames.csv /home/efinder/Solver/data
 cp /home/efinder/eFinder_Lite/Solver/generate_database.py /home/efinder/venv-efinder/lib/python3.11/site-packages/tetra3
-
+echo " "
+echo "*****************************************************************************"
+echo "Installing OLED & GPIO drivers"
+echo "*****************************************************************************"
 wget https://github.com/joan2937/lg/archive/master.zip
 unzip master.zip
 cd lg-master
 sudo make install
 sudo apt install -y python3-rpi-lgpio
-
 cd /home/efinder/Solver
 unzip drive.zip
 
 cd $HOME
+echo " "
 echo "*****************************************************************************"
 echo "Installing Samba file share support"
 
@@ -95,25 +89,22 @@ create mask=0777
 directory mask=0777
 public=no
 EOT
-
 username="efinder"
 pass="efinder"
 (echo $pass; sleep 1; echo $pass) | sudo smbpasswd -a -s $username
-
 sudo systemctl restart smbd
 
+cd $HOME
+echo " "
 echo "*****************************************************************************"
 echo "Downloading Tetra databases"
-
-cd $HOME
+echo "*****************************************************************************"
 venv-efinder/bin/python venv-efinder/bin/pip install gdown
 venv-efinder/bin/gdown  --output /home/efinder/Solver/data --folder https://drive.google.com/drive/folders/1uxbdttpg0Dpp8OuYUDY9arYoeglfZzcX
-
+echo " "
 echo "*****************************************************************************"
 echo "Final eFinder_Lite configuration setting"
-
-cd $HOME
-
+echo "*****************************************************************************"
 sudo chmod a+rwx eFinder_Lite/Solver/my_cron
 sudo cp Solver/my_cron /etc/cron.d
 
