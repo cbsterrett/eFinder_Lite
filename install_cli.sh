@@ -34,9 +34,6 @@ cd $HOME
 
 echo ""
 
-cd /home/efinder/venv-efinder/lib/python3.11/site-packages/tetra3
-sudo wget https://cdsarc.u-strasbg.fr/ftp/cats/I/239/hip_main.dat
-
 cd $HOME
 echo "*****************************************************************************"
 echo "Downloading eFinder_Lite from AstroKeith GitHub"
@@ -109,6 +106,7 @@ sudo systemctl restart smbd
 echo "*****************************************************************************"
 echo "Downloading Tetra databases"
 
+cd $HOME
 venv-efinder/bin/python venv-efinder/bin/pip install gdown
 venv-efinder/bin/gdown  --output /home/efinder/Solver/data --folder https://drive.google.com/drive/folders/1uxbdttpg0Dpp8OuYUDY9arYoeglfZzcX
 
