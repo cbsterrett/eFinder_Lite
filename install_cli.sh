@@ -17,6 +17,7 @@ sudo apt install -y python3-psutil
 sudo apt install -y python3-pil
 sudo apt install -y python3-pil.imagetk
 sudo apt install -y git
+sudo apt install -y python3-smbus
 
 HOME=/home/efinder
 echo "*****************************************************************************"
