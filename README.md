@@ -17,7 +17,7 @@ Full details at [
 
 ## Operation
 Plug the eFinder into the Nexus DSC port.
-Turn on the Nexus DSC which will power up the eFinder Lite
+Turn on the Nexus DSC which will power up the eFinder Lite.
 The eFinder Lite will autostart on power up.
 
 
