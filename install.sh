@@ -4,11 +4,15 @@ echo "eFinder install"
 echo " "
 echo "*****************************************************************************"
 #sudo rpi-update -y
+echo "*****************************************************************************"
+echo "Updating Pi OS & packages"
 
 sudo apt update
 sudo apt upgrade -y
 
 HOME=/home/efinder
+echo "*****************************************************************************"
+echo "Installing new astrometry packages"
 
 #sudo apt-get install -y libcairo2-dev libnetpbm11-dev netpbm libpng-dev libjpeg-dev zlib1g-dev libbz2-dev swig libcfitsio-dev
 # sudo -u efinder python3 -m pip install --upgrade pip
@@ -34,10 +38,15 @@ sudo wget https://cdsarc.u-strasbg.fr/ftp/cats/I/239/hip_main.dat
 
 
 cd $HOME
+echo "*****************************************************************************"
+echo "Downloading eFinder_Lite from AstroKeith GitHub"
 
 sudo -u efinder git clone https://github.com/AstroKeith/eFinder_Lite.git
 
 cd eFinder_Lite
+
+echo "*****************************************************************************"
+echo "Installing ASI camera support"
 
 tar xf ASI_linux_mac_SDK_V1.31.tar.bz2
 cd ASI_linux_mac_SDK_V1.31/lib
@@ -54,6 +63,9 @@ venv-efinder/bin/python venv-efinder/bin/pip install zwoasi
 cd $HOME
 
 echo "tmpfs /var/tmp tmpfs nodev,nosuid,size=10M 0 0" | sudo tee -a /etc/fstab > /dev/null
+
+echo "*****************************************************************************"
+echo "Installing required packages"
 
 mkdir /home/efinder/Solver
 mkdir /home/efinder/Solver/images
@@ -75,6 +87,8 @@ cd /home/efinder/Solver
 unzip drive.zip
 
 cd $HOME
+echo "*****************************************************************************"
+echo "Installing Samba file share support"
 
 sudo apt install -y samba samba-common-bin
 sudo tee -a /etc/samba/smb.conf > /dev/null <<EOT
@@ -91,18 +105,31 @@ pass="efinder"
 (echo $pass; sleep 1; echo $pass) | sudo smbpasswd -a -s $username
 
 sudo systemctl restart smbd#echo "[efindershare]" | sudo tee -a /etc/samba/smb.conf > /dev/null
+
+echo "*****************************************************************************"
+echo "Downloading Tetra databases"
+
+venv-efinder/bin/python venv-efinder/bin/pip install gdown
+venv-efinder/bin/gdown  --output /home/efinder/venv-efinder/lib/python3.11/site-packages/tetra3/data --folder https://drive.google.com/drive/folders/1uxbdttpg0Dpp8OuYUDY9arYoeglfZzcX
+
 #echo "path = /home/efinder" | sudo tee -a /etc/samba/smb.conf > /dev/null
 #echo "writeable=Yes" | sudo tee -a /etc/samba/smb.conf > /dev/null
 #echo "create mask=0777" | sudo tee -a /etc/samba/smb.conf > /dev/null
 #echo "directory mask=0777" | sudo tee -a /etc/samba/smb.conf > /dev/null
 #echo "public=no" | sudo tee -a /etc/samba/smb.conf > /dev/null
 
-# add crontab -e edit
+echo "*****************************************************************************"
+echo "Final eFinder_Lite configuration setting"
+
+cd $HOME
+sudo cp Solver/my_cron /etc/cron.d
+sudo chmod a+x /etc/cron.d/my_cron
 
 sudo raspi-config nonint do_boot_behaviour B2
 sudo raspi-config nonint do_hostname efinder
 sudo raspi-config nonint do_ssh 0
 sudo raspi-config nonint do_serial_hw 0
+sudo raspi-config nonint do_serial_cons 1
 sudo raspi-config nonint do_spi 0
 sudo raspi-config nonint do_i2c 0
 
