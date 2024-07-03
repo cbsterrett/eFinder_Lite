@@ -33,11 +33,8 @@ cd $HOME
 
 echo ""
 
-#sudo sh -c "echo export PATH=$PATH:/usr/local/astrometry/bin >> /etc/profile"
-
 cd /home/efinder/venv-efinder/lib/python3.11/site-packages/tetra3
 sudo wget https://cdsarc.u-strasbg.fr/ftp/cats/I/239/hip_main.dat
-
 
 cd $HOME
 echo "*****************************************************************************"
@@ -106,19 +103,13 @@ username="efinder"
 pass="efinder"
 (echo $pass; sleep 1; echo $pass) | sudo smbpasswd -a -s $username
 
-sudo systemctl restart smbd#echo "[efindershare]" | sudo tee -a /etc/samba/smb.conf > /dev/null
+sudo systemctl restart smbd
 
 echo "*****************************************************************************"
 echo "Downloading Tetra databases"
 
 venv-efinder/bin/python venv-efinder/bin/pip install gdown
-venv-efinder/bin/gdown  --output /home/efinder/venv-efinder/lib/python3.11/site-packages/tetra3/data --folder https://drive.google.com/drive/folders/1uxbdttpg0Dpp8OuYUDY9arYoeglfZzcX
-
-#echo "path = /home/efinder" | sudo tee -a /etc/samba/smb.conf > /dev/null
-#echo "writeable=Yes" | sudo tee -a /etc/samba/smb.conf > /dev/null
-#echo "create mask=0777" | sudo tee -a /etc/samba/smb.conf > /dev/null
-#echo "directory mask=0777" | sudo tee -a /etc/samba/smb.conf > /dev/null
-#echo "public=no" | sudo tee -a /etc/samba/smb.conf > /dev/null
+venv-efinder/bin/gdown  --output /home/efinder/Solver/data --folder https://drive.google.com/drive/folders/1uxbdttpg0Dpp8OuYUDY9arYoeglfZzcX
 
 echo "*****************************************************************************"
 echo "Final eFinder_Lite configuration setting"
