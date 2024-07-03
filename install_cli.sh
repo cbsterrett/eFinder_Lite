@@ -16,6 +16,7 @@ sudo apt install -y python3-serial
 sudo apt install -y python3-psutil
 sudo apt install -y python3-pil
 sudo apt install -y python3-pil.imagetk
+sudo apt install -y git
 
 HOME=/home/efinder
 echo "*****************************************************************************"
