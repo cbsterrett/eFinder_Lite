@@ -53,9 +53,7 @@ sudo mkdir /lib/zwoasi
 sudo mkdir /lib/zwoasi/armv8
 sudo cp armv8/*.* /lib/zwoasi/armv8
 sudo install asi.rules /lib/udev/rules.d
-
 cd $HOME
-
 venv-efinder/bin/python venv-efinder/bin/pip install zwoasi
 
 cd $HOME
@@ -115,8 +113,9 @@ echo "**************************************************************************
 echo "Final eFinder_Lite configuration setting"
 
 cd $HOME
+
+sudo chmod a+x Solver/my_cron
 sudo cp Solver/my_cron /etc/cron.d
-sudo chmod a+x /etc/cron.d/my_cron
 
 sudo raspi-config nonint do_boot_behaviour B2
 sudo raspi-config nonint do_hostname efinder
