@@ -41,7 +41,8 @@ echo " "
 echo "*****************************************************************************"
 echo "Installing ASI camera support"
 echo "*****************************************************************************"
-cd eFinder_Litetar xf ASI_linux_mac_SDK_V1.31.tar.bz2
+cd eFinder_Lite
+tar xf ASI_linux_mac_SDK_V1.31.tar.bz2
 cd ASI_linux_mac_SDK_V1.31/lib
 sudo mkdir /lib/zwoasi
 sudo mkdir /lib/zwoasi/armv8
