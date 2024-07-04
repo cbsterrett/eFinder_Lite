@@ -481,22 +481,40 @@ def doButton(button):
             exec(arr[x, y][7])
         #time.sleep(0.1)
     
-    if pin == '5':
-        #print('Up')
-        exec(arr[x, y][3])
-        #time.sleep(0.1)
-    elif pin == '6':
-        #print('Down')
-        exec(arr[x, y][4])
-        #time.sleep(0.2)
-    elif pin == '13':
-        #print('Left')
-        exec(arr[x, y][5])
-        #time.sleep(0.1)
-    elif pin == '19':
-        #print('Right')
-        exec(arr[x, y][6])
-        #time.sleep(0.1)
+    if tilt.acceleration[1] > 0:
+        if pin == '5':
+            #print('Up')
+            exec(arr[x, y][3])
+            #time.sleep(0.1)
+        elif pin == '6':
+            #print('Down')
+            exec(arr[x, y][4])
+            #time.sleep(0.2)
+        elif pin == '13':
+            #print('Left')
+            exec(arr[x, y][5])
+            #time.sleep(0.1)
+        elif pin == '19':
+            #print('Right')
+            exec(arr[x, y][6])
+            #time.sleep(0.1)
+    else:
+        if pin == '6':
+            #print('Up')
+            exec(arr[x, y][3])
+            #time.sleep(0.1)
+        elif pin == '5':
+            #print('Down')
+            exec(arr[x, y][4])
+            #time.sleep(0.2)
+        elif pin == '19':
+            #print('Left')
+            exec(arr[x, y][5])
+            #time.sleep(0.1)
+        elif pin == '13':
+            #print('Right')
+            exec(arr[x, y][6])
+            #time.sleep(0.1)
 
     gotoFlag = False
 
