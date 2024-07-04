@@ -18,6 +18,7 @@ sudo apt install -y python3-pil
 sudo apt install -y python3-pil.imagetk
 sudo apt install -y git
 sudo apt install -y python3-smbus
+sudo apt install -y python3-picamera2
 
 HOME=/home/efinder
 echo " "
