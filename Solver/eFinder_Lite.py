@@ -547,7 +547,7 @@ if param["Camera Type ('QHY' or 'ASI')"]=='ASI':
         dataBase = 't3_fov11_mag9'
         camCam = (1280,960,30.8,11)
 elif param["Camera Type ('QHY' or 'ASI')"]=='RPI':
-    import RPICamera_lite
+    import RPICamera_Lite
     camera = RPICamera_Lite.RPICamera(handpad)
     heightCam = 960
     widthCam = 1280
