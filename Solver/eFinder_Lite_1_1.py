@@ -35,7 +35,12 @@ from gpiozero import Button
 import tetra3
 from pprint import *
 import csv
+import board
+import adafruit_adxl34x
+
 handpad.display('ScopeDog eFinder','Lite','Loading program')
+i2c = board.I2C()
+tilt = adafruit_adxl34x.ADXL345(i2c)
 
 x = y = 0  # x, y  define what page the display is showing
 deltaAz = deltaAlt = 0
