@@ -1,13 +1,13 @@
 from pathlib import Path
 from shutil import copyfile
 from CameraInterface import CameraInterface
-import Display_64
+import Display_Lite
 from picamera2 import Picamera2
 
 class RPICamera(CameraInterface):
     """The camera class for RPI cameras.  Implements the CameraInterface interface."""
 
-    def __init__(self, handpad: Display_64) -> None:
+    def __init__(self, handpad: Display_Lite) -> None:
         """Initializes the RPI camera
 
         Parameters:
