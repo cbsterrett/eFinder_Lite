@@ -24,6 +24,7 @@ class ASICamera(CameraInterface):
             self.handpad.display("Error:", " no camera found", "")
             self.camType = "not found"
             print("camera not found")
+            exit()
         else:
             self.camType = "ZWO"
             cameras_found = asi.list_cameras()
