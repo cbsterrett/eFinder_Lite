@@ -35,7 +35,7 @@ class RPICamera(CameraInterface):
         """
         if self.camType == "not found":
             self.handpad.display("camera not found", "", "")
-            return
+            exit()
         
         if m13 == True:
             print(self.home_path + "/Solver/test.jpg", destPath+"capture.jpg")
