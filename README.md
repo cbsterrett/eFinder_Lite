@@ -20,9 +20,9 @@ Plug the eFinder into the Nexus DSC port.
 Turn on the Nexus DSC which will power up the eFinder Lite.
 The eFinder Lite will autostart on power up.
 
-ssh & Samba file sharing is enabled at efinder.local
+ssh & Samba file sharing is enabled at efinder.local, or whatever hostname you have chosen.
 
-The eFinder.config file is accessible via a browser at <your hostname>.local
+The eFinder.config file is accessible via a browser at "efinder.local", or whatever hostname you have chosen.
 
 A forum for builders and users can be found at https://groups.io/g/eFinder
 
