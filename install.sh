@@ -103,6 +103,19 @@ echo "Downloading Tetra databases"
 echo "*****************************************************************************"
 venv-efinder/bin/python venv-efinder/bin/pip install gdown
 venv-efinder/bin/gdown  --output /home/efinder/Solver/data --folder https://drive.google.com/drive/folders/1uxbdttpg0Dpp8OuYUDY9arYoeglfZzcX
+
+echo " "
+echo "*****************************************************************************"
+echo "Setting up web page server"
+echo "*****************************************************************************"
+sudo apt-get install -y apache2
+sudo apt-get install -y php8.2
+sudo chmod a+rwx /home/efinder
+sudo chmod a+rwx /home/efinder/Solver
+sudo chmod a+rwx /home/efinder/Solver/eFinder.config
+sudo cp www/*.* /var/www/html
+sudo mv /var/www/html/index.html /var/www/html/apacheindex.html
+
 echo " "
 echo "*****************************************************************************"
 echo "Final eFinder_Lite configuration setting"
