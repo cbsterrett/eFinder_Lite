@@ -32,6 +32,7 @@ class Nexus:
 
         try:
             self.ser = serial.Serial("/dev/ttyS0", baudrate=9600)
+            time.sleep(0.1)
             self.ser.write(b":P#")
             time.sleep(0.1)
             p = str(self.ser.read(self.ser.in_waiting), "ascii")
