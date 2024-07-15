@@ -116,7 +116,7 @@ def solveImage():
         np_image = np.asarray(img, dtype=np.uint8)
         centroids = tetra3.get_centroids_from_image(
             np_image,
-            downsample=2,
+            downsample=1,
             )
         
         stars = str(int(centroids.size/2))
