@@ -121,7 +121,7 @@ def solveImage():
         
         stars = str(int(centroids.size/2))
         print('number of centroids:',stars)
-        if centroids.size/2 < 10:
+        if centroids.size/2 < 30:
             print('Bad image')
             handpad.display("Bad image","only"+ stars," centroids")
             solve = False
