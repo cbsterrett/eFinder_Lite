@@ -1,6 +1,6 @@
 #!/bin/sh
 
-echo "eFinder install"
+echo "eFinder Lite install"
 echo " "
 echo "*****************************************************************************"
 echo "Updating Pi OS & packages"
