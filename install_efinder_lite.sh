@@ -21,6 +21,7 @@ sudo apt install -y python3-smbus
 sudo apt install -y python3-picamera2
 
 HOME=/home/efinder
+cd $HOME
 echo " "
 echo "*****************************************************************************"
 echo "Installing new astrometry packages"
@@ -69,6 +70,7 @@ echo " "
 echo "*****************************************************************************"
 echo "Installing OLED & GPIO drivers"
 echo "*****************************************************************************"
+cd $HOME
 wget https://github.com/joan2937/lg/archive/master.zip
 unzip master.zip
 cd lg-master
