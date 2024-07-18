@@ -27,7 +27,6 @@ echo "**************************************************************************
 echo "Installing new astrometry packages"
 echo "*****************************************************************************"
 sudo apt install -y python3-skyfield
-sudo apt install -y python3-pil.imagetk
 sudo apt install -y protobuf-compiler
 
 python -m venv /home/efinder/venv-efinder --system-site-packages
