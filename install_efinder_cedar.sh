@@ -38,6 +38,9 @@ venv-efinder/bin/python venv-efinder/bin/pip install adafruit-circuitpython-adxl
 venv-efinder/bin/python venv-efinder/bin/pip install grpcio
 venv-efinder/bin/python venv-efinder/bin/pip install grpcio-tools
 
+sudo -u efinder git clone https://github.com/smroid/cedar-detect.git
+sudo -u efinder git clone https://github.com/smroid/cedar-solve.git
+
 # get cedar repos
 # copy to tetra folder
 # copy cedar detect & copy?
