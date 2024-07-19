@@ -27,11 +27,20 @@ echo "**************************************************************************
 echo "Installing new astrometry packages"
 echo "*****************************************************************************"
 sudo apt install -y python3-skyfield
-sudo apt install -y protobuf-compiler
+venv-efinder/bin/python venv-efinder/bin/pip install git+https://github.com/esa/tetra3.git
+
+#sudo apt install -y protobuf-compiler
+#curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
 python -m venv /home/efinder/venv-efinder --system-site-packages
 venv-efinder/bin/python venv-efinder/bin/pip install cedar-solve
 venv-efinder/bin/python venv-efinder/bin/pip install adafruit-circuitpython-adxl34x
+venv-efinder/bin/python venv-efinder/bin/pip install grpcio
+venv-efinder/bin/python venv-efinder/bin/pip install grpcio-tools
+
+# get cedar repos
+# copy to tetra folder
+# copy cedar detect & copy?
 
 cd $HOME
 echo " "
@@ -61,7 +70,7 @@ echo "**************************************************************************
 mkdir /home/efinder/Solver
 mkdir /home/efinder/Solver/images
 mkdir /home/efinder/Solver/data
-mkdir /home/efinder/venv-efinder/lib/python3.11/site-packages/tetra3/bin
+# mkdir /home/efinder/venv-efinder/lib/python3.11/site-packages/tetra3/bin
 
 cp /home/efinder/eFinder_Lite/Solver/*.* /home/efinder/Solver
 cp /home/efinder/eFinder_Lite/Solver/de421.bsp /home/efinder
