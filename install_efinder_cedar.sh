@@ -27,13 +27,15 @@ echo "**************************************************************************
 echo "Installing new astrometry packages"
 echo "*****************************************************************************"
 sudo apt install -y python3-skyfield
-venv-efinder/bin/python venv-efinder/bin/pip install git+https://github.com/esa/tetra3.git
+
 
 #sudo apt install -y protobuf-compiler
 #curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
 python -m venv /home/efinder/venv-efinder --system-site-packages
-venv-efinder/bin/python venv-efinder/bin/pip install cedar-solve
+
+venv-efinder/bin/python venv-efinder/bin/pip install git+https://github.com/esa/tetra3.git
+#venv-efinder/bin/python venv-efinder/bin/pip install cedar-solve
 venv-efinder/bin/python venv-efinder/bin/pip install adafruit-circuitpython-adxl34x
 venv-efinder/bin/python venv-efinder/bin/pip install grpcio
 venv-efinder/bin/python venv-efinder/bin/pip install grpcio-tools
@@ -41,9 +43,8 @@ venv-efinder/bin/python venv-efinder/bin/pip install grpcio-tools
 sudo -u efinder git clone https://github.com/smroid/cedar-detect.git
 sudo -u efinder git clone https://github.com/smroid/cedar-solve.git
 
-# get cedar repos
-# copy to tetra folder
-# copy cedar detect & copy?
+cd $HOME
+yes | -rf cp cedar-solve/tetra3/*.* venv-efinder/lib/python3.11/site-packages/tetra3
 
 cd $HOME
 echo " "
