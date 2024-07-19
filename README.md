@@ -1,4 +1,9 @@
 # eFinder Lite
+
+************ Dont try to use install_efinder_cedar.sh ****************
+Its currently under development
+
+
 code for AltAz telescopes (primarily Dobsonians) to utilise plate-solving to improve pointing accuracy.
 
 Requires:
