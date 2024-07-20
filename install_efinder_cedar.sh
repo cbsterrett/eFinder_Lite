@@ -39,12 +39,11 @@ venv-efinder/bin/python venv-efinder/bin/pip install git+https://github.com/esa/
 venv-efinder/bin/python venv-efinder/bin/pip install adafruit-circuitpython-adxl34x
 venv-efinder/bin/python venv-efinder/bin/pip install grpcio
 venv-efinder/bin/python venv-efinder/bin/pip install grpcio-tools
+venv-efinder/bin/python venv-efinder/bin/pip install gdown
 
 sudo -u efinder git clone https://github.com/smroid/cedar-detect.git
 sudo -u efinder git clone https://github.com/smroid/cedar-solve.git
 
-cd $HOME
-yes | -rf cp cedar-solve/tetra3/*.* venv-efinder/lib/python3.11/site-packages/tetra3
 
 cd $HOME
 echo " "
@@ -74,11 +73,12 @@ echo "**************************************************************************
 mkdir /home/efinder/Solver
 mkdir /home/efinder/Solver/images
 mkdir /home/efinder/Solver/data
-# mkdir /home/efinder/venv-efinder/lib/python3.11/site-packages/tetra3/bin
+
 
 cp /home/efinder/eFinder_Lite/Solver/*.* /home/efinder/Solver
 cp /home/efinder/eFinder_Lite/Solver/de421.bsp /home/efinder
 cp /home/efinder/eFinder_Lite/Solver/starnames.csv /home/efinder/Solver/data
+venv-efinder/bin/gdown  --output /home/efinder/venv-efinder/lib/python3.11/site-packages/tetra3/data --folder https://drive.google.com/drive/folders/1uxbdttpg0Dpp8OuYUDY9arYoeglfZzcX
 
 echo " "
 echo "*****************************************************************************"
@@ -121,7 +121,7 @@ sudo cp -r cedar-solve/tetra3/bin venv-efinder/lib/python3.11/site-packages/tetr
 sudo cp -r cedar-solve/tetra3/cli venv-efinder/lib/python3.11/site-packages/tetra3
 sudo cp -r cedar-solve/tetra3/proto venv-efinder/lib/python3.11/site-packages/tetra3
 sudo cp /home/efinder/eFinder_Lite/Solver/data/*.* /home/efinder/venv-efinder/lib/python3.11/site-packages/tetra3/data
-cp /home/efinder/eFinder_Lite/Solver/cedar_detect_server /home/efinder/venv-efinder/lib/python3.11/site-packages/tetra3/bin
+sudo cp /home/efinder/eFinder_Lite/Solver/cedar-detect-server /home/efinder/venv-efinder/lib/python3.11/site-packages/tetra3/bin
 
 echo " "
 echo "*****************************************************************************"
