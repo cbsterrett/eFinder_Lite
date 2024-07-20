@@ -139,7 +139,7 @@ sudo chmod a+rwx eFinder_Lite/Solver/my_cron
 sudo cp /home/efinder/eFinder_Lite/Solver/my_cron /etc/cron.d
 
 sudo raspi-config nonint do_boot_behaviour B2
-sudo raspi-config nonint do_hostname efinder
+#sudo raspi-config nonint do_hostname efinder
 sudo raspi-config nonint do_ssh 0
 sudo raspi-config nonint do_serial_hw 0
 sudo raspi-config nonint do_serial_cons 1
