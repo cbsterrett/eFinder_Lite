@@ -79,7 +79,7 @@ mkdir /home/efinder/Solver/data
 cp /home/efinder/eFinder_Lite/Solver/*.* /home/efinder/Solver
 cp /home/efinder/eFinder_Lite/Solver/de421.bsp /home/efinder
 cp /home/efinder/eFinder_Lite/Solver/starnames.csv /home/efinder/Solver/data
-cp /home/efinder/eFinder_Lite/Solver/cedar_detect_server /home/efinder/venv-efinder/lib/python3.11/site-packages/tetra3/bin
+
 echo " "
 echo "*****************************************************************************"
 echo "Installing OLED & GPIO drivers"
@@ -117,7 +117,11 @@ echo " "
 echo "*****************************************************************************"
 echo "installing Tetra databases"
 echo "*****************************************************************************"
-sudo cp Solver/data/*.* /home/efinder/venv-efinder/lib/python3.11/site-packages/tetra3/data
+sudo cp -r cedar-solve/tetra3/bin venv-efinder/lib/python3.11/site-packages/tetra3
+sudo cp -r cedar-solve/tetra3/cli venv-efinder/lib/python3.11/site-packages/tetra3
+sudo cp -r cedar-solve/tetra3/proto venv-efinder/lib/python3.11/site-packages/tetra3
+sudo cp /home/efinder/eFinder_Lite/Solver/data/*.* /home/efinder/venv-efinder/lib/python3.11/site-packages/tetra3/data
+cp /home/efinder/eFinder_Lite/Solver/cedar_detect_server /home/efinder/venv-efinder/lib/python3.11/site-packages/tetra3/bin
 
 echo " "
 echo "*****************************************************************************"
