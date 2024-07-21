@@ -62,7 +62,13 @@ class Handpad:
 
         self.disp.getbuffer(im)
         self.disp.ShowImage()
-        
+
+    def dispFocus(self, screen):
+        self.draw.rectangle((0,0,self.width,self.height), outline=0, fill=0)
+        self.disp.getbuffer(screen)
+        self.disp.ShowImage()
+
+
     def get_box(self) -> serial.Serial:
         """Returns the box variable
 
