@@ -2,12 +2,15 @@
 
 This variant is currently under development - may contain bugs!
 
-The autostart version eFinder_Lite.py will start version 1_5 which uses Tetra3 for detection and solving.
+The autostart version eFinder_Lite.py will start version eFinder_Lite_1_5 which uses Tetra3 for detection and solving.
 
 If you want to use the faster Cedar-Detect version, rename eFinder_Lite_Cedar.py to eFinder_Lite.py
 
 
-code for AltAz telescopes (primarily Dobsonians) to utilise plate-solving to improve pointing accuracy.
+
+
+
+Code for AltAz telescopes (primarily Dobsonians) to utilise plate-solving to improve pointing accuracy.
 
 Requires:
 
