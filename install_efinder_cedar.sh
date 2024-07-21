@@ -113,7 +113,7 @@ echo "**************************************************************************
 sudo cp -r cedar-solve/tetra3 venv-efinder/lib/python3.11/site-packages
 sudo venv-efinder/bin/gdown  --output /home/efinder/venv-efinder/lib/python3.11/site-packages/tetra3/data --folder https://drive.google.com/drive/folders/1uxbdttpg0Dpp8OuYUDY9arYoeglfZzcX
 sudo cp /home/efinder/eFinder_Lite/Solver/cedar-detect-server /home/efinder/venv-efinder/lib/python3.11/site-packages/tetra3/bin
-sudo chmod a+rwx /home/efinder/venv-efinder/lib/python3.11/site-packages/tetra3/bin/cedar-detect-server
+sudo chmod a+rwx -R /home/efinder/venv-efinder/lib/python3.11/site-packages/tetra3
 
 echo " "
 echo "*****************************************************************************"
