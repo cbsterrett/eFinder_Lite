@@ -38,19 +38,19 @@ class RPICamera(CameraInterface):
             exit()
         
         if m13 == True:
-            print(self.home_path + "/Solver/test.jpg", destPath+"capture.jpg")
+            print(self.home_path + "/Solver/test.png", destPath+"capture.png")
             copyfile(
-                self.home_path + "/Solver/test.jpg",
-                destPath+"capture.jpg",
+                self.home_path + "/Solver/test.png",
+                destPath+"capture.png",
             )
         elif polaris == True:
             copyfile(
-                self.home_path + "/Solver/polaris.jpg",
-                destPath+"capture.jpg",
+                self.home_path + "/Solver/polaris.png",
+                destPath+"capture.png",
             )
             print("using Polaris")
         else:
-            filename=destPath+"capture.jpg"
+            filename=destPath+"capture.png"
             exp = int(exposure_time)
             gn = float(gain)
             self.picam2.stop()
