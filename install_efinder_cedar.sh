@@ -34,7 +34,7 @@ sudo apt install -y python3-skyfield
 
 python -m venv /home/efinder/venv-efinder --system-site-packages
 
-venv-efinder/bin/python venv-efinder/bin/pip install git+https://github.com/esa/tetra3.git
+#venv-efinder/bin/python venv-efinder/bin/pip install git+https://github.com/esa/tetra3.git
 #venv-efinder/bin/python venv-efinder/bin/pip install cedar-solve
 venv-efinder/bin/python venv-efinder/bin/pip install adafruit-circuitpython-adxl34x
 venv-efinder/bin/python venv-efinder/bin/pip install grpcio
@@ -117,9 +117,10 @@ echo " "
 echo "*****************************************************************************"
 echo "installing Tetra databases"
 echo "*****************************************************************************"
-sudo cp -r cedar-solve/tetra3/bin venv-efinder/lib/python3.11/site-packages/tetra3
-sudo cp -r cedar-solve/tetra3/cli venv-efinder/lib/python3.11/site-packages/tetra3
-sudo cp -r cedar-solve/tetra3/proto venv-efinder/lib/python3.11/site-packages/tetra3
+sudo cp -r cedar-solve/tetra3 venv-efinder/lib/python3.11/site-packages
+#sudo cp -r cedar-solve/tetra3/bin venv-efinder/lib/python3.11/site-packages/tetra3
+#sudo cp -r cedar-solve/tetra3/cli venv-efinder/lib/python3.11/site-packages/tetra3
+#sudo cp -r cedar-solve/tetra3/proto venv-efinder/lib/python3.11/site-packages/tetra3
 sudo cp /home/efinder/eFinder_Lite/Solver/data/*.* /home/efinder/venv-efinder/lib/python3.11/site-packages/tetra3/data
 sudo cp /home/efinder/eFinder_Lite/Solver/cedar-detect-server /home/efinder/venv-efinder/lib/python3.11/site-packages/tetra3/bin
 
