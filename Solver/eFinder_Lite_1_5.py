@@ -130,7 +130,7 @@ def solveImage():
         print('w,h',cam[0],cam[1])
         solution = t3.solve_from_centroids(
                         centroids,
-                        (cam[0],cam[1]),
+                        (img.size[1],img.size[0]),
                         fov_estimate=cam[3],
                         target_pixel=offset,
                         return_matches=True,
@@ -562,7 +562,7 @@ def loopFocus(a):
         np_image = np.asarray(img, dtype=np.uint8)
         centroids = tetra3.get_centroids_from_image(
             np_image,
-            downsample=2,
+            downsample=1,
             )
 
         print(centroids[0])
@@ -645,32 +645,28 @@ get_param()
 if param["Camera"]=='ASI':
     import ASICamera_Lite
     camera = ASICamera_Lite.ASICamera(handpad)
-    heightCam = 960
-    widthCam = 1280
     if param["Lens_focal_length"] == '50':
-        dataBase = 't3_fov5_mag9'
+        dataBase = 't3_fov5_mag8'
         camCam = (1280,960,15.4,5.5)
     elif param["Lens_focal_length"] == '25':
-        dataBase = 't3_fov11_mag9'
+        dataBase = 't3_fov11_mag8'
         camCam = (1280,960,30.8,11)
 elif param["Camera"]=='RPI':
     import RPICamera_Lite
     camera = RPICamera_Lite.RPICamera(handpad)
-    heightCam = 960
-    widthCam = 1280
     if param["Lens_focal_length"] == '50':
-        dataBase = 't3_fov7_mag9'
-        camCam = (1014,760,6.4,7.2)
+        dataBase = 't3_fov7_mag8'
+        camCam = (1014,760,25.3,7.2)
     elif param["Lens_focal_length"] == '25':
-        dataBase = 't3_fov14_mag9'
-        camCam = (1014,760,12.8,14.3)   
+        dataBase = 't3_fov14_mag8'
+        camCam = (1014,760,50.7,14.3)   
 
 Testcam = (1280,960,15.4,5.5)
 print('loading dBase')
 handpad.display('Please wait','loading Tetra3','database')
 if param["Test_mode"] == '1':
     cam = Testcam
-    t3 = tetra3.Tetra3('t3_fov5_mag9')
+    t3 = tetra3.Tetra3('t3_fov5_mag8')
 else:
     cam = camCam
     t3 = tetra3.Tetra3(dataBase)
