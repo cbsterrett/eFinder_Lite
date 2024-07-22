@@ -18,7 +18,7 @@ if len(sys.argv) > 1:
     print ('Killing running version')
     os.system('pkill -9 -f eFinder_Lite.py') # stops the autostart eFinder program running
 import Display_Lite
-version = "Lite_1"
+version = "Lite_1_6"
 handpad = Display_Lite.Handpad(version)
 handpad.display('ScopeDog eFinder','Lite','Version '+ version)
 import time
@@ -656,17 +656,17 @@ elif param["Camera"]=='RPI':
     camera = RPICamera_Lite.RPICamera(handpad)
     if param["Lens_focal_length"] == '50':
         dataBase = 't3_fov7_mag8'
-        camCam = (1014,760,25.3,7.2)
+        camCam = (960,760,25.4,6.8)
     elif param["Lens_focal_length"] == '25':
         dataBase = 't3_fov14_mag8'
-        camCam = (1014,760,50.7,14.3)   
+        camCam = (960,760,50.8,13.5)   
 
-Testcam = (1280,960,15.4,5.5)
+Testcam = (960,760,50.8,13.5)
 print('loading dBase')
 handpad.display('Please wait','loading Tetra3','database')
 if param["Test_mode"] == '1':
     cam = Testcam
-    t3 = tetra3.Tetra3('t3_fov5_mag8')
+    t3 = tetra3.Tetra3('t3_fov14_mag8')
 else:
     cam = camCam
     t3 = tetra3.Tetra3(dataBase)
