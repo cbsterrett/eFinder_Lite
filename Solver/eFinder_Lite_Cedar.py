@@ -579,10 +579,10 @@ def newBase():
     handpad.display('Please wait','loading new','database')
     if param["Test_mode"] == '1':
         cam = Testcam
-        t3 = tetra3.tetra3('t3_fov14_mag8')
+        t3 = Tetra3('t3_fov14_mag8')
     else:
         cam = camCam
-        t3 = tetra3.Tetra3(dataBase)
+        t3 = Tetra3(dataBase)
     left_right(-1)
 
 def loopFocus():
