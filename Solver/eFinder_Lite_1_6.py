@@ -548,7 +548,7 @@ def newBase():
     handpad.display('Please wait','loading new','database')
     if param["Test_mode"] == '1':
         cam = Testcam
-        t3 = tetra3.Tetra3('t3_fov5_mag9')
+        t3 = tetra3.Tetra3('t3_fov14_mag8')
     else:
         cam = camCam
         t3 = tetra3.Tetra3(dataBase)
