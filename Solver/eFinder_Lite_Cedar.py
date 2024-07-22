@@ -18,7 +18,7 @@ if len(sys.argv) > 1:
     print ('Killing running version')
     os.system('pkill -9 -f eFinder_Lite.py') # stops the autostart eFinder program running
 import Display_Lite
-version = "Lite_1_8"
+version = "Lite_2_1"
 handpad = Display_Lite.Handpad(version)
 handpad.display('ScopeDog eFinder','Lite','Version '+ version)
 import time
