@@ -70,19 +70,19 @@ class ASICamera(CameraInterface):
         camera.set_control_value(asi.ASI_EXPOSURE, exposure_time)  # microseconds
 
         if m13 == True:
-            print(self.home_path + "/Solver/test.jpg", destPath+"capture.jpg")
+            print(self.home_path + "/Solver/test.png", destPath+"capture.png")
             copyfile(
-                self.home_path + "/Solver/test.jpg",
-                destPath+"capture.jpg",
+                self.home_path + "/Solver/test.png",
+                destPath+"capture.png",
             )
         elif polaris == True:
             copyfile(
-                self.home_path + "/Solver/polaris.jpg",
-                destPath+"capture.jpg",
+                self.home_path + "/Solver/polaris.png",
+                destPath+"capture.png",
             )
             print("using Polaris")
         else:
-            camera.capture(filename=destPath+"capture.jpg")
+            camera.capture(filename=destPath+"capture.png")
         return
 
     def get_cam_type(self) -> str:
