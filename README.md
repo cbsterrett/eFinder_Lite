@@ -3,9 +3,9 @@
 ## Important
 This variant is currently under development - may contain bugs!
 
-The autostart version eFinder_Lite.py will start version eFinder_Lite_1_5 which uses Tetra3 for detection and solving.
+The autostart version eFinder_Lite.py is version eFinder_Lite_2_1 which uses Cedar-Detect for detection and Tetra3 for solving.
 
-If you want to use the faster Cedar-Detect version, rename eFinder_Lite_Cedar.py to eFinder_Lite.py
+If you want to use Tetra3 for both detect and solve, rename eFinder_Lite1_7.py to eFinder_Lite.py
 
 
 
