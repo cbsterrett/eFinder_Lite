@@ -35,7 +35,6 @@ from gpiozero import Button
 from tetra3 import Tetra3, cedar_detect_client
 cedar_detect = cedar_detect_client.CedarDetectClient()
 import tetra3
-from pprint import *
 import csv
 import board
 import adafruit_adxl34x
@@ -68,7 +67,6 @@ except:
 
 def pixel2dxdy(pix_x, pix_y):  # converts a pixel position, into a delta angular offset from the image centre
     global cam
-    print(cam)
     deg_x = (float(pix_x) - cam[0]/2) * cam[2]/3600  # in degrees
     deg_y = (cam[1]/2 - float(pix_y)) * cam[2] / 3600
     dxstr = "{: .1f}".format(float(60 * deg_x))  # +ve if finder is left of main scope
@@ -79,7 +77,6 @@ def pixel2dxdy(pix_x, pix_y):  # converts a pixel position, into a delta angular
 
 def dxdy2pixel(dx, dy): # converts offsets in arc minutes to pixel position
     global cam
-    print(cam)
     pix_x = dx * 3600 / cam[2] + cam[0]/2
     pix_y = cam[1]/2 - dy * 3600 / cam[2]
     dxstr = "{: .1f}".format(float(60 * dx))  # +ve if finder is left of main scope
@@ -109,49 +106,23 @@ def capture():
     
 def solveImage():
     global offset_flag, solve, solvedPos, elapsed_time, solved_radec, solved_altaz, firstStar, solution, cam, stars
-    #print (cam)
 
     start_time = time.time()
     handpad.display("Started solving", "", "")
     captureFile = destPath + "capture.png"
-    print('Got image          ',int((time.time()-start_time)*1000))
     with Image.open(captureFile).convert('L') as img:
-        print('Opened image       ',int((time.time()-start_time)*1000))
-        #img = img.convert(mode='L')
-        print('Converted image    ',int((time.time()-start_time)*1000))
-        #np_image = np.asarray(img, dtype=np.uint8)
-        '''
-        centroids = tetra3.get_centroids_from_image(
-            img,
-            downsample=1,
-            )
-        '''
         centroids = cedar_detect.extract_centroids(
             img,
             max_size=10,
             sigma=8,
             use_binned=False,
             )
-        print('Centroids extracted',int((time.time()-start_time)*1000))
         stars = str(len(centroids))
-        #print('number of centroids:',stars)
         if len(centroids) < 30:
-            print('Bad image')
             handpad.display("Bad image","only"+ stars," centroids")
             solve = False
             return
-        #print('fov estimate',cam[3])
-        #print('w,h',cam[0],cam[1])
-        print('Starting solve     ',int((time.time()-start_time)*1000))
-        '''
-        solution = t3.solve_from_centroids(
-                        centroids,
-                        np_image.shape,
-                        fov_estimate=cam[3],
-                        target_pixel=offset,
-                        return_matches=True,
-                    )
-        '''
+
         solution = t3.solve_from_centroids(
                         centroids,
                         (img.size[1],img.size[0]),
@@ -161,13 +132,10 @@ def solveImage():
                         target_pixel=offset,
                         return_matches=True,
                     )
-        #pprint (solution)
+
         elapsed_time = str(time.time() - start_time)[0:3]
 
-    print("solved             ", int((time.time()-start_time)*1000))
-
     if solution['RA'] == None:
-        print("Bad Luck - Solve Failed")
         handpad.display("Not Solved",stars + " centroids", "")
         solve = False
         return
@@ -189,7 +157,6 @@ def solveImage():
     arr[0, 2][2] = stars + " stars in " + elapsed_time + " s"
     solve = True
     deltaCalc()
-    print("Total              ", int((time.time()-start_time)*1000))
 
 def deltaCalc():
     global deltaAz, deltaAlt, elapsed_time, stars
@@ -222,25 +189,19 @@ def align():
     align_ra = ":Sr" + coordinates.dd2dms((solved_radec)[0]) + "#"
     align_dec = ":Sd" + coordinates.dd2aligndms((solved_radec)[1]) + "#"
     valid = nexus.get(align_ra)
-    print(align_ra)
     if valid == "0":
-        print("invalid position")
         handpad.display(arr[x, y][0], "Invalid position", arr[x, y][2])
         time.sleep(3)
         return
     valid = nexus.get(align_dec)
-    print(align_dec)
     if valid == "0":
-        print("invalid position")
         handpad.display(arr[x, y][0], "Invalid position", arr[x, y][2])
         time.sleep(3)
         return
     reply = nexus.get(":CM#")
     nexus.read_altAz(arr)
     deltaCalc()
-    print("reply: ", reply)
     p = nexus.get(":GW#")
-    print("Align status reply ", p)
     if nexus.is_aligned() == False: # wasnt aligned before this action
         align_count += 1    
         if p[1] != "T": # and still not aligned
@@ -254,7 +215,6 @@ def align():
             arr[0,4][2] = "Nexus is aligned"
             arr[2,0][1] = "Nexus is aligned"
             handpad.display(arr[0,4][0],arr[0,4][1],arr[0,4][2])
-            print("Nexus now aligned:",nexus.is_aligned())
             nexus.set_aligned(True)
     else:
         sync_count +=1
@@ -276,7 +236,6 @@ def measure_offset():
         return
     scope_x = firstStar[1]
     scope_y = firstStar[0]
-    print('pixel_offset x,y',scope_x,scope_y)
 
     d_x, d_y, dxstr, dystr = pixel2dxdy(scope_x, scope_y)
     param["d_x"] = d_x
@@ -285,7 +244,6 @@ def measure_offset():
     offset_str = dxstr + "," + dystr
     arr[2, 1][1] = "new " + offset_str
     arr[2, 2][1] = "new " + offset_str
-    print('star',str(solution['matched_catID'][0]))
     hipId = str(solution['matched_catID'][0])
     name = ""
     with open(home_path+'/Solver/data/starnames.csv') as csvfile:
@@ -296,8 +254,7 @@ def measure_offset():
                 if str(row[1]) == str(solution['matched_catID'][0]):
                     hipId = hip
                     name = nam
-                    break
-    print('Brightest star:',name,'HIP',hipId)            
+                    break        
     handpad.display(arr[2, 1][0], arr[2, 1][1], name + ', HIP ' + hipId)
     offset_flag = False
 
@@ -366,7 +323,6 @@ def gotoDistant():
     if deltaRa > 180:
         deltaRa = abs(deltaRa - 360)
     deltaDec = abs(nexus_radec[1]-goto_radec[1])
-    print('goto distance, RA,Dec :',deltaRa,deltaDec)
     if deltaRa+deltaDec > 5:
         return(True)
     else:
@@ -375,10 +331,7 @@ def gotoDistant():
 def readTarget():
     global goto_radec,goto_ra,goto_dec
     goto_ra = nexus.get(":Gr#")
-    if (
-        goto_ra[0:2] == "00" and goto_ra[3:5] == "00"
-    ):  # not a valid goto target set yet.
-        print("no GoTo target")
+    if (goto_ra[0:2] == "00" and goto_ra[3:5] == "00"):  # not a valid goto target set yet.
         handpad.display("no GoTo target","set yet","")
         return
     goto_dec = nexus.get(":Gd#")
@@ -388,7 +341,6 @@ def readTarget():
             abs(abs(float(dec[0])) + float(dec[1]) / 60 + float(dec[2]) / 3600),
             float(dec[0]),
     )
-    print("Target goto RA & Dec", goto_ra, goto_dec)
 
 def goto():
     global gotoFlag
@@ -405,7 +357,6 @@ def goto():
             reply = nexus.get(":MS#")
         else:    
             gotoStr = '%s%06.3f %+06.3f' %("g",goto_radec[0],goto_radec[1])
-            print("Target goto RA & Dec", gotoStr)
             servocat.send(gotoStr)
         handpad.display("Performing", " GoTo", "")
         time.sleep(1)
@@ -422,7 +373,6 @@ def goto():
         reply = nexus.get(":MS#")
     else:
         gotoStr = '%s%06.3f %+06.3f' %("g",goto_radec[0],goto_radec[1])
-        print('GoToStr: ',gotoStr)
         servocat.send(gotoStr)
     gotoStopped()
     gotoFlag = False
@@ -455,7 +405,6 @@ def gotoStopped():
     while True:
         time.sleep(2)
         radec = getRadec()
-        print('%s %3.6f %3.6f %s' % ('RA Dec delta', (radecNow[0] - radec[0])*15,radecNow[1]-radec[1],'degrees'))
         if (abs(radecNow[0] - radec[0])*15 < 0.01) and (abs(radecNow[1] - radec[1]) < 0.01):
             return
         else:
@@ -478,15 +427,12 @@ def get_param():
             for line in h:
                 line = line.strip("\n").split(":")
                 param[line[0]] = str(line[1])
-        #pix_scale = float(param["pixel scale"])
-
 
 
 def save_param():
     global param, cam, Testcam, camCam, dataBase, t3
     with open(home_path + "/Solver/eFinder.config", "w") as h:
         for key, value in param.items():
-            #print("%s:%s\n" % (key, value))
             h.write("%s:%s\n" % (key, value))
 
 
@@ -511,52 +457,40 @@ def doButton(button):
     gotoFlag = True
     stop = False
     pin = str(button.pin)[4:]
-    #handpad.display(pin,'','')
     if pin == '26':
         time.sleep(0.4)
         if ok.is_pressed:
-            #print('OK')
             exec(arr[x, y][8])
         else:
-            #print('long')
             exec(arr[x, y][7])
             stop = True
-        #time.sleep(0.1)
     
     if tilt.acceleration[1] > 0:
         if pin == '5':
             time.sleep(0.05)
             exec(arr[x, y][3])
-            #time.sleep(0.1)
         elif pin == '6':
-            #print('Down')
+            time.sleep(0.05)
             exec(arr[x, y][4])
-            #time.sleep(0.2)
         elif pin == '13':
             time.sleep(0.05)
             exec(arr[x, y][5])
-            #time.sleep(0.1)
         elif pin == '19':
             time.sleep(0.05)
             exec(arr[x, y][6])
-            #time.sleep(0.1)
     else:
         if pin == '6':
             time.sleep(0.05)
             exec(arr[x, y][3])
-            #time.sleep(0.1)
         elif pin == '5':
             time.sleep(0.05)
             exec(arr[x, y][4])
-            #time.sleep(0.2)
         elif pin == '19':
             time.sleep(0.05)
             exec(arr[x, y][5])
-            #time.sleep(0.1)
         elif pin == '13':
             time.sleep(0.05)
             exec(arr[x, y][6])
-            #time.sleep(0.1)
 
     gotoFlag = False
 
@@ -575,7 +509,6 @@ def AdjBright(c):
 
 def newBase():
     global cam, Testcam, camCam, t3
-    print('loading new database')
     handpad.display('Please wait','loading new','database')
     if param["Test_mode"] == '1':
         cam = Testcam
@@ -587,7 +520,6 @@ def newBase():
 
 def loopFocus():
     capture()
-    print('start loop')
     with Image.open("/var/tmp/solve/capture.png") as img:
         img = img.convert(mode='L')
         np_image = np.asarray(img, dtype=np.uint8)
@@ -595,9 +527,6 @@ def loopFocus():
             np_image,
             downsample=1,
             )
-
-        print(centroids[0])
-        print(centroids.size/2, 'centroids found ')
 
         w=16
         x1=int(centroids[0][0]-w)
@@ -612,7 +541,6 @@ def loopFocus():
         y2=int(centroids[0][1]+w)
         if y2 > img.size[0]:
             y2 = img.size[0]
-        #print(centroids[0][0],centroids[0][1])
         fnt = ImageFont.truetype(home_path+"/Solver/text.ttf",8)
 
         patch = np_image[x1:x2,y1:y2]
@@ -622,31 +550,15 @@ def loopFocus():
 
         imgPlot = Image.new("1",(32,32))
         shape=[]
-        print('x-range')
         for h in range (x1,x2):
-            print(np_image[h][y1+w],end=' ')
             shape.append(((h-x1),int((255-np_image[h][y1+w])/8)))
         draw = ImageDraw.Draw(imgPlot)
         draw.line(shape,fill="white",width=1)
-        print()
         shape=[]
-        print('y-range')
         for h in range (y1,y2):
-            print(np_image[x1+w][h],end=' ')
             shape.append(((h-y1),int((255-np_image[x1+w][h])/8)))
-        print()
-
         draw = ImageDraw.Draw(imgPlot)
         draw.line(shape,fill="white",width=1)
-
-        midLine = ""
-        y = int((255-np.max(np_image)/2)/8)
-        np_plot = np.array(imgPlot)
-
-        for x in range (0,31):
-            val = str(int(np_plot[y][x]))
-            #print (val, end='')
-            midLine = midLine + val
 
         txtPlot = Image.new("1",(50,32))
         txt = ImageDraw.Draw(txtPlot)
@@ -694,7 +606,6 @@ elif param["Camera"]=='RPI':
         camCam = (960,760,50.8,13.5)   
 
 Testcam = (960,760,50.8,13.5)
-print('loading dBase')
 handpad.display('Please wait','loading Tetra3','database')
 if param["Test_mode"] == '1':
     cam = Testcam
@@ -883,30 +794,24 @@ arr = new_arr
 if nexus.is_aligned() == True:
     arr[0, 4][1] = "Nexus is aligned"
     arr[0, 4][0] = "'OK' syncs"
-    #arr[2,0][1] = "Nexus is aligned"
-
-
 
 if param["Drive"].lower()=='servocat':
     import ServoCat
     servocat = ServoCat.ServoCat()
     sDog = False
-    print('ServoCat mode')
     drive = True
     arr[2,0][1] = "ServoCat mode"
 elif param["Drive"].lower()=='scopedog':
-    print('ScopeDog mode')
     drive = True
     arr[2,0][1] = "ScopeDog mode"
 else:
-    print('No drive')
     arr[2,0][1] = "No drive"
     drive = False
 if param["Ramdisk"].lower()=='true':
     destPath = "/var/tmp/solve/"
 else:
     destPath = home_path + "/Solver/images/"
-print('Working folder: '+destPath)
+
 update_summary()
 
 
@@ -947,7 +852,6 @@ else:
     while True:
         if handpad.get_box() in select.select([handpad.get_box()], [], [], 0)[0]:
             button = handpad.get_box().readline().decode("ascii").strip("\r\n")
-            #print(button)
             if button == "20":
                 exec(arr[x, y][7])
             elif button == "21":
