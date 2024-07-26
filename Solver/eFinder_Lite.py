@@ -18,7 +18,7 @@ if len(sys.argv) > 1:
     print ('Killing running version')
     os.system('pkill -9 -f eFinder_Lite.py') # stops the autostart eFinder program running
 import Display_Lite
-version = "Lite_1_6"
+version = "Lite_2_1"
 handpad = Display_Lite.Handpad(version)
 handpad.display('ScopeDog eFinder','Lite','Version '+ version)
 import time
@@ -32,6 +32,8 @@ from pathlib import Path
 import Nexus_Lite
 import Coordinates_Lite
 from gpiozero import Button
+from tetra3 import Tetra3, cedar_detect_client
+cedar_detect = cedar_detect_client.CedarDetectClient()
 import tetra3
 from pprint import *
 import csv
@@ -107,39 +109,62 @@ def capture():
     
 def solveImage():
     global offset_flag, solve, solvedPos, elapsed_time, solved_radec, solved_altaz, firstStar, solution, cam, stars
-    print (cam)
+    #print (cam)
+
+    start_time = time.time()
     handpad.display("Started solving", "", "")
-    captureFile = destPath + "capture.jpg" # may need to use png
-    with Image.open(captureFile) as img:
-        start_time = time.time()
-        img = img.convert(mode='L')
-        np_image = np.asarray(img, dtype=np.uint8)
+    captureFile = destPath + "capture.png"
+    print('Got image          ',int((time.time()-start_time)*1000))
+    with Image.open(captureFile).convert('L') as img:
+        print('Opened image       ',int((time.time()-start_time)*1000))
+        #img = img.convert(mode='L')
+        print('Converted image    ',int((time.time()-start_time)*1000))
+        #np_image = np.asarray(img, dtype=np.uint8)
+        '''
         centroids = tetra3.get_centroids_from_image(
-            np_image,
+            img,
             downsample=1,
             )
-        
-        stars = str(int(centroids.size/2))
-        print('number of centroids:',stars)
-        if centroids.size/2 < 30:
+        '''
+        centroids = cedar_detect.extract_centroids(
+            img,
+            max_size=10,
+            sigma=8,
+            use_binned=False,
+            )
+        print('Centroids extracted',int((time.time()-start_time)*1000))
+        stars = str(len(centroids))
+        #print('number of centroids:',stars)
+        if len(centroids) < 30:
             print('Bad image')
             handpad.display("Bad image","only"+ stars," centroids")
             solve = False
             return
-        print('fov estimate',cam[3])
-        print('w,h',cam[0],cam[1])
+        #print('fov estimate',cam[3])
+        #print('w,h',cam[0],cam[1])
+        print('Starting solve     ',int((time.time()-start_time)*1000))
+        '''
         solution = t3.solve_from_centroids(
                         centroids,
-                        (img.size[1],img.size[0]),
+                        np_image.shape,
                         fov_estimate=cam[3],
                         target_pixel=offset,
                         return_matches=True,
                     )
-
+        '''
+        solution = t3.solve_from_centroids(
+                        centroids,
+                        (img.size[1],img.size[0]),
+                        fov_estimate=cam[3],
+                        fov_max_error=1,
+                        match_max_error=0.002,
+                        target_pixel=offset,
+                        return_matches=True,
+                    )
         #pprint (solution)
         elapsed_time = str(time.time() - start_time)[0:3]
 
-    print("solve elapsed time " + elapsed_time + " sec")
+    print("solved             ", int((time.time()-start_time)*1000))
 
     if solution['RA'] == None:
         print("Bad Luck - Solve Failed")
@@ -164,6 +189,7 @@ def solveImage():
     arr[0, 2][2] = stars + " stars in " + elapsed_time + " s"
     solve = True
     deltaCalc()
+    print("Total              ", int((time.time()-start_time)*1000))
 
 def deltaCalc():
     global deltaAz, deltaAlt, elapsed_time, stars
@@ -259,12 +285,17 @@ def measure_offset():
     offset_str = dxstr + "," + dystr
     arr[2, 1][1] = "new " + offset_str
     arr[2, 2][1] = "new " + offset_str
+    print('star',str(solution['matched_catID'][0]))
+    hipId = str(solution['matched_catID'][0])
+    name = ""
     with open(home_path+'/Solver/data/starnames.csv') as csvfile:
             reader = csv.reader(csvfile, delimiter=',')
             for row in reader:
-                name = row[0].strip()
-                hipId = row[1]
+                nam = row[0].strip()
+                hip = row[1]
                 if str(row[1]) == str(solution['matched_catID'][0]):
+                    hipId = hip
+                    name = nam
                     break
     print('Brightest star:',name,'HIP',hipId)            
     handpad.display(arr[2, 1][0], arr[2, 1][1], name + ', HIP ' + hipId)
@@ -494,7 +525,7 @@ def doButton(button):
     
     if tilt.acceleration[1] > 0:
         if pin == '5':
-            #print('Up')
+            time.sleep(0.05)
             exec(arr[x, y][3])
             #time.sleep(0.1)
         elif pin == '6':
@@ -502,28 +533,28 @@ def doButton(button):
             exec(arr[x, y][4])
             #time.sleep(0.2)
         elif pin == '13':
-            #print('Left')
+            time.sleep(0.05)
             exec(arr[x, y][5])
             #time.sleep(0.1)
         elif pin == '19':
-            #print('Right')
+            time.sleep(0.05)
             exec(arr[x, y][6])
             #time.sleep(0.1)
     else:
         if pin == '6':
-            #print('Up')
+            time.sleep(0.05)
             exec(arr[x, y][3])
             #time.sleep(0.1)
         elif pin == '5':
-            #print('Down')
+            time.sleep(0.05)
             exec(arr[x, y][4])
             #time.sleep(0.2)
         elif pin == '19':
-            #print('Left')
+            time.sleep(0.05)
             exec(arr[x, y][5])
             #time.sleep(0.1)
         elif pin == '13':
-            #print('Right')
+            time.sleep(0.05)
             exec(arr[x, y][6])
             #time.sleep(0.1)
 
@@ -554,10 +585,10 @@ def newBase():
         t3 = Tetra3(dataBase)
     left_right(-1)
 
-def loopFocus(a):
+def loopFocus():
     capture()
     print('start loop')
-    with Image.open("/var/tmp/solve/capture.jpg") as img:
+    with Image.open("/var/tmp/solve/capture.png") as img:
         img = img.convert(mode='L')
         np_image = np.asarray(img, dtype=np.uint8)
         centroids = tetra3.get_centroids_from_image(
@@ -632,6 +663,7 @@ def adjExp(i):
     global param
     param['Exposure'] = ('%.1f' % (float(param['Exposure']) + i*0.2))
     update_summary()
+    loopFocus()
 
 # main code starts here
 
@@ -647,7 +679,7 @@ if param["Camera"]=='ASI':
     camera = ASICamera_Lite.ASICamera(handpad)
     if param["Lens_focal_length"] == '50':
         dataBase = 't3_fov5_mag8'
-        camCam = (1280,960,15.4,5.5)
+        camCam = (1280,960,15.4,5.5) # width pixels,height pixels,pixel scale, width field of view
     elif param["Lens_focal_length"] == '25':
         dataBase = 't3_fov11_mag8'
         camCam = (1280,960,30.8,11)
@@ -666,10 +698,10 @@ print('loading dBase')
 handpad.display('Please wait','loading Tetra3','database')
 if param["Test_mode"] == '1':
     cam = Testcam
-    t3 = tetra3.Tetra3('t3_fov14_mag8')
+    t3 = Tetra3('t3_fov14_mag8')
 else:
     cam = camCam
-    t3 = tetra3.Tetra3(dataBase)
+    t3 = Tetra3(dataBase)
 handpad.display('Done','','')
 
 deg_x, deg_y, dxstr, dystr = dxdy2pixel(float(param["d_x"]), float(param["d_y"]))
@@ -834,8 +866,8 @@ focus = [
     "adjExp(-1)",
     "left_right(-1)",
     "",
-    "loopFocus(1)",
-    "loopFocus(-1)",
+    "loopFocus()",
+    "loopFocus()",
 ]
 arr = np.array(
     [
