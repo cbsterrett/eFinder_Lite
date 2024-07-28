@@ -121,3 +121,9 @@ echo $html;
 
 </body>
 </html>
+<?php
+
+$image = '/home/efinder/Solver/images/image.png';
+$imageData = base64_encode(file_get_contents($image));
+echo '<img src="data:image/png;base64,'.$imageData.'">';
+?>

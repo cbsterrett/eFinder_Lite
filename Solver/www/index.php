@@ -76,6 +76,7 @@ while(!feof($fp)) {
 	$html .= "</td></tr>";
 }
 echo $html;
+
 ?>
 <tr><td>
 <INPUT TYPE="submit"  value="Save Config File">
@@ -85,8 +86,17 @@ echo $html;
 <INPUT type="submit" value="Run ScopeDog">
 </form>
  -->
+
 </td></tr>
 
 </table>
+
 </body>
 </html>
+<?php
+
+$image = '/home/efinder/Solver/images/image.png';
+$imageData = base64_encode(file_get_contents($image));
+echo '<img src="data:image/png;base64,'.$imageData.'">';
+?>
+
