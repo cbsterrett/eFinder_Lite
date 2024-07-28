@@ -168,17 +168,7 @@ class Nexus:
             self.short = ra[0]+ra[1]+dec[0]+dec[1]
         except:
             print('read_altAz error:',ra,dec)
-        '''
-        print(
-            "Nexus RA:  ",
-            self.coordinates.hh2dms(self.radec[0]),
-            "  Dec: ",
-            self.coordinates.dd2dms(self.radec[1]),
-        )
-        '''
-        if arr is not None:
-            arr[0, 1][0] = "Nex: RA " + self.coordinates.hh2dms(self.radec[0])
-            arr[0, 1][1] = "   Dec " + self.coordinates.dd2dms(self.radec[1])
+        
         
         if arr is not None:
             return arr
