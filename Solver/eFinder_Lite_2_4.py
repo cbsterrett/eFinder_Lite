@@ -75,7 +75,7 @@ def pixel2dxdy(pix_x, pix_y):  # converts a pixel position, into a delta angular
     dystr = "{: .1f}".format(float(60 * deg_y))  # +ve if finder is looking below main scope
     return (deg_x, deg_y, dxstr, dystr)
 
-def dxdy2pixel(dx, dy): # converts offsets in arc minutes to pixel position
+def dxdy2pixel(dx, dy): # converts offsets in arcseconds to pixel position
     global cam
     pix_x = dx * 3600 / cam[2] + cam[0]/2
     pix_y = cam[1]/2 - dy * 3600 / cam[2]
@@ -203,8 +203,8 @@ def measure_offset():
     scope_y = firstStar[0]
     offset = firstStar
     d_x, d_y, dxstr, dystr = pixel2dxdy(scope_x, scope_y)
-    param["d_x"] = d_x
-    param["d_y"] = d_y
+    param["d_x"] = "{: .2f}".format(float(60 * d_x))
+    param["d_y"] = "{: .2f}".format(float(60 * d_y))
     save_param()
     offset_str = dxstr + "," + dystr
     arr[0,2][1] = "new " + offset_str
@@ -543,7 +543,7 @@ def saveImage():
     annotated.rectangle((0,0,img.size[0],img.size[1]),outline='white',width=2)
     sta = datetime.datetime.now(timezone.utc)
     stamp = sta.strftime("%d%m%y_%H%M%S")
-    annotated.text((3,3),stamp,font = fnt,fill='white')
+    annotated.text((4,4),stamp,font = fnt,fill='white')
     img.save(home_path + "/Solver/images/image.png")
     #copyfile (destPath + "capture.png",home_path + "/Solver/images/image.png")
     handpad.display(arr[x, y][0], arr[x, y][1], "image saved")
@@ -585,10 +585,11 @@ else:
     t3 = Tetra3(dataBase)
 handpad.display('Done','','')
 
-pix_x, pix_y, dxstr, dystr = dxdy2pixel(float(param["d_x"]), float(param["d_y"]))
+pix_x, pix_y, dxstr, dystr = dxdy2pixel(float(param["d_x"])/60, float(param["d_y"])/60)
 offset_str = dxstr + "," + dystr
-offset = (pix_y, pix_x) # default centre of the image
 
+offset = (pix_y, pix_x) 
+print(offset)
 # array determines what is displayed, computed and what each button does for each screen.
 # [first line,second line,third line, up button action,down...,left...,right...,select button short press action, long press action]
 # empty string does nothing.
