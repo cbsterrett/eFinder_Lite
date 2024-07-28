@@ -65,7 +65,11 @@ class Handpad:
 
     def dispFocus(self, screen):
         self.draw.rectangle((0,0,self.width,self.height), outline=0, fill=0)
-        self.disp.getbuffer(screen)
+        if self.tilt.acceleration[1] < 0:
+            im = screen.transpose(Image.ROTATE_180)
+        else:
+            im = screen
+        self.disp.getbuffer(im)
         self.disp.ShowImage()
 
 
