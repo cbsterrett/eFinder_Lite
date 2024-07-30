@@ -37,3 +37,7 @@ The eFinder.config file is accessible via a browser at "efinder.local", or whate
 
 A forum for builders and users can be found at https://groups.io/g/eFinder
 
+## Acknowledgements and Licences
+
+The eFinder Lite uses Tetra3 and Cedar-Detect. Please refer to the licence and other notes in the Tetra3 folder
+
