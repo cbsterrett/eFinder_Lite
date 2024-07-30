@@ -122,6 +122,7 @@ def solveImage():
         if len(centroids) < 30:
             handpad.display("Bad image","only"+ stars," centroids")
             solve = False
+            time.sleep(1)
             return
         solution = t3.solve_from_centroids(
                         centroids,
