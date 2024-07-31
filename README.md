@@ -3,9 +3,9 @@
 ## Important
 This variant is currently under development - may contain bugs!
 
-The autostart version eFinder_Lite.py is version eFinder_Lite_2_1 which uses Cedar-Detect for detection and Tetra3 for solving.
+The autostart version eFinder_Lite.py is version eFinder_Lite_2_1 which uses Cedar-Detect for detection and Cedar-Solve for solving.
 
-If you want to use Tetra3 for both detect and solve, rename eFinder_Lite1_7.py to eFinder_Lite.py
+If you want to use Tetra3, rename eFinder_Lite1_7.py to eFinder_Lite.py
 
 
 
@@ -24,7 +24,7 @@ Requires:
 - Camera lens, either 25 or 50mm. f1.8 or faster cctv lens
 
 Full details at [
-](https://astrokeith.com/equipment/efinder/)https://astrokeith.com/equipment/efinder/
+](https://astrokeith.com/equipment/efinder/efinder-lite)https://astrokeith.com/equipment/efinder/efinder-lite
 
 ## Operation
 Plug the eFinder into the Nexus DSC port.
@@ -39,5 +39,5 @@ A forum for builders and users can be found at https://groups.io/g/eFinder
 
 ## Acknowledgements and Licences
 
-The eFinder Lite uses Tetra3 and Cedar-Detect. Please refer to the licence and other notes in the Tetra3 folder
+The eFinder Lite uses Tetra3, Cedar-Detect & Cedar-Solve. Please refer to the licence and other notes in the Tetra3 folder
 
