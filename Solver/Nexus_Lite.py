@@ -8,6 +8,8 @@ import math
 import re
 import Display_Lite
 import Coordinates_Lite
+import subprocess
+import sys
 
 class Nexus:
     """The Nexus utility class"""
@@ -70,7 +72,15 @@ class Nexus:
                     self.nexus_link = "Wifi"
             except:
                 print("no USB or Wifi link to Nexus")
-                self.handpad.display("Nexus not found", "", "")
+                try:
+                    print("Trying to start eFinder Live")
+                    self.handpad.display("Nexus not found", "Will try", "eFinder Live")
+                    time.sleep(1)
+                    subprocess.Popen(["venv-efinder/bin/python","Solver/eFinder_Live.py"])
+                except:
+                    print("Failed to start eFinder Live")
+                    self.handpad.display("eFinder", "Can't start", "")
+                sys.exit(0)
 
     def write(self, txt: str) -> None:
         """Write a message to the Nexus DSC
