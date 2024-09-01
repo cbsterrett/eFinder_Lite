@@ -19,6 +19,8 @@ sudo apt install -y python3-pil.imagetk
 sudo apt install -y git
 sudo apt install -y python3-smbus
 sudo apt install -y python3-picamera2
+sudo apt install -y gpsd
+
 
 HOME=/home/efinder
 cd $HOME
@@ -34,6 +36,7 @@ venv-efinder/bin/python venv-efinder/bin/pip install adafruit-circuitpython-adxl
 venv-efinder/bin/python venv-efinder/bin/pip install grpcio
 venv-efinder/bin/python venv-efinder/bin/pip install grpcio-tools
 venv-efinder/bin/python venv-efinder/bin/pip install gdown
+venv-efinder/bin/python venv-efinder/bin/pip install gps3
 
 sudo -u efinder git clone https://github.com/smroid/cedar-detect.git
 sudo -u efinder git clone https://github.com/smroid/cedar-solve.git
