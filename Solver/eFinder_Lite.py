@@ -14,15 +14,17 @@
 # It requires astrometry.net installed
 import os
 import sys
+import socket
 if len(sys.argv) > 1:
     print ('Killing running version')
     os.system('pkill -9 -f eFinder_Lite.py') # stops the autostart eFinder program running
 import Display_Lite
-version = "Lite_2_7"
+version = "Lite3_3"
 handpad = Display_Lite.Handpad(version)
 handpad.display('ScopeDog eFinder','Lite','Version '+ version)
 import time
 import math
+from threading import Thread
 from PIL import Image, ImageDraw,ImageFont, ImageEnhance
 import re
 from skyfield.api import Star
@@ -59,6 +61,10 @@ dispBright = 241
 home_path = str(Path.home())
 c= 0
 fnt = ImageFont.truetype(home_path+"/Solver/text.ttf",8)
+prev = 0,0,0
+solved_radec = (0.0,89.9)
+go_to = False
+threshold = 0.4
 
 if len(sys.argv) > 1:
     os.system('pkill -9 -f eFinder_Lite.py') # stops the autostart eFinder program running
@@ -66,6 +72,89 @@ try:
     os.mkdir("/var/tmp/solve")
 except:
     pass
+
+def serveWifi(): # serve WiFi port
+    global gotoRa,gotoDec, go_to,doMove, dirMove, solved_radec, speed, goto_altaz
+    print ('starting wifi server')
+    host = ''
+    port = 4060
+    backlog = 50
+    size = 1024
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    s.bind((host,port))
+    s.listen(backlog)
+    
+    while True:
+        client, address = s.accept()
+        while True:
+            data = client.recv(size)
+            if not data:
+                break
+            if data:
+                pkt = data.decode("utf-8","ignore")
+                time.sleep(0.02)
+                a = pkt.split('#')
+                #print(a)
+                raPacket = coordinates.dd2dms(solved_radec[0])+'#'
+                decPacket = coordinates.dd2aligndms(solved_radec[1])+'#'
+                for x in a:
+                    if x != '':
+                        #print (x)
+                        if x == ':GR':
+                            #print("sending RA  ",raPacket)
+                            #time.sleep(0.05)
+                            client.send(bytes(raPacket.encode('ascii')))
+                        elif x == ':GD':
+                            #print("sending Dec",decPacket)
+                            #time.sleep(.05)
+                            client.send(bytes(decPacket.encode('ascii')))
+                        elif x == ':RC':
+                            #print("send Dec")
+                            #time.sleep(.1)
+                            speed = 10
+                            #client.send(bytes(decPacket.encode('ascii')))
+                        elif x[1:3] == 'Sr': # goto instructions incoming
+                            packet = '1'
+                            raStr = x[3:]
+                            client.send(b'1')
+                        elif x[1:3] == 'Sd': # goto instructions incoming
+                            packet = '1'
+                            decStr = x[3:]
+                            client.send(b'1')  
+                        elif x[1:3] == 'MS':
+                            client.send(b'0')
+                            ra = raStr.split(':')
+                            gotoRa = int(ra[0])+int(ra[1])/60+int(ra[2])/3600
+                            dec = decStr.split('*')
+                            decdec = dec[1].split(':')
+                            gotoDec = int(dec[0]) + math.copysign((int(decdec[0])/60+int(decdec[1])/3600),float(dec[0]))
+                            print('GoTo target received:',gotoRa, gotoDec)
+                            goto_radec = gotoRa, gotoDec
+                            goto_altaz = coordinates.conv_altaz(nexus, *(goto_radec))
+                            print('goto AltAz',goto_altaz)
+                            go_to = True
+                        elif x[1:3] == 'RG':
+                            print('RG')
+                            speed = 40
+                            #client.send(bytes(decPacket.encode('ascii')))
+                        elif x[1:3] == 'RM':
+                            print('RM')
+                            speed = 3
+                            #client.send(bytes(decPacket.encode('ascii')))
+                        elif x[1:3] == 'RS':
+                            print('RS')
+                            speed = 1
+                            #client.send(bytes(decPacket.encode('ascii')))
+                        elif x[1] == 'M':
+                            doMove = True
+                            dirMove = x[2]
+                        elif x[1] == 'Q':
+                            print('STOP!')
+                            go_to = False
+                            doMove = False
+                
+    
 
 def pixel2dxdy(pix_x, pix_y):  # converts a pixel position, into a delta angular offset from the image centre
     global cam
@@ -105,11 +194,11 @@ def capture():
     )
 
 
-def solveImage():
-    global offset_flag, solve, solvedPos, elapsed_time, solved_radec, solved_altaz, firstStar, solution, cam, stars
+def solveImage(looping = False):
+    global offset_flag, solve, solvedPos, elapsed_time, solved_radec, solved_altaz, firstStar, solution, cam, stars, go_to
 
     start_time = time.time()
-    handpad.display("Started solving", "", "")
+    #handpad.display("Started solving", "", "")
     captureFile = destPath + "capture.png"
     with Image.open(captureFile).convert('L') as img:
         centroids = cedar_detect.extract_centroids(
@@ -119,7 +208,7 @@ def solveImage():
             use_binned=False,
             )
         stars = str(len(centroids))
-        if len(centroids) < 30:
+        if len(centroids) < 20:
             handpad.display("Bad image","only"+ stars," centroids")
             solve = False
             time.sleep(1)
@@ -152,9 +241,29 @@ def solveImage():
     ra, dec, d = solvedPos.apparent().radec(coordinates.get_ts().now())
     solved_radec = ra.hours, dec.degrees
     solved_altaz = coordinates.conv_altaz(nexus, *(solved_radec))
-    arr[0, 1][0] = "Sol: RA " + coordinates.hh2dms(solved_radec[0])
-    arr[0, 1][1] = "   Dec " + coordinates.dd2dms(solved_radec[1])
-    arr[0, 1][2] = stars + " stars in " + elapsed_time + " s"
+    if looping:
+        arr[0, 1][0] = "Sol: Az " + coordinates.ddd2dms(solved_altaz[1])
+        arr[0, 1][1] = "   Alt " + coordinates.dd2dms(solved_altaz[0])
+        if go_to == True:
+            ddAz = goto_altaz[1] - solved_altaz[1]
+            ddAlt = goto_altaz[0] - solved_altaz[0]
+            if ddAz < 0:
+                sAz = '<'
+            else:
+                sAz = '>'
+            if ddAlt < 0:
+                sAlt = 'v'
+            else:
+                sAlt = '^'
+            dAz = ('%s %3.2f' % (sAz,abs(ddAz)))
+            dAlt = ('%s %2.2f' % (sAlt, abs(ddAlt)))
+            arr[0, 1][2] = dAz + '   ' + dAlt
+        else:
+            arr[0, 1][2] = stars + " stars in " + elapsed_time + " s"
+    else:
+        arr[0, 1][0] = "Sol: RA " + coordinates.hh2dms(solved_radec[0])
+        arr[0, 1][1] = "   Dec " + coordinates.dd2dms(solved_radec[1])
+        arr[0, 1][2] = stars + " stars in " + elapsed_time + " s"
     solve = True
 
 
@@ -280,6 +389,20 @@ def go_solve():
     y = 1
     handpad.display(arr[x, y][0], arr[x, y][1], arr[x, y][2])
 
+def solveLoop():
+    global x, y, prev
+    while True:
+        capture()
+        solveImage(True)
+        handpad.display(arr[x, y][0], arr[x, y][1], arr[x, y][2])
+        if up.is_pressed:
+            x = y = 0
+            break
+        while abs(tilt.acceleration[0] - prev[0]) > threshold or abs(tilt.acceleration[1] - prev[1]) > threshold or abs(tilt.acceleration[2] - prev[2]) > threshold:
+            handpad.display(arr[x, y][0], arr[x, y][1], "Scope moving")
+            time.sleep(0.2)
+            prev = tilt.acceleration
+
 def gotoDistant():
     nexus.read_altAz(arr)
     nexus_radec = nexus.get_radec()
@@ -398,7 +521,8 @@ def home_refresh():
         else:
             handpad.display(arr[x, y][0], arr[x, y][1], arr[x, y][2])
             time.sleep (0.5)
-            
+
+
 def doButton(button):
     global gotoFlag, stop
     gotoFlag = True
@@ -475,7 +599,7 @@ def adjExposure(pk): # auto
 
 def adjExp(i): #manual
     global param
-    param['Exposure'] = ('%.1f' % (float(param['Exposure']) + i*0.2))
+    param['Exposure'] = ('%.1f' % (float(param['Exposure']) + i*0.1))
     update_summary()
     arr[1,1][1]= param['Exposure']
     loopFocus(0)
@@ -641,7 +765,7 @@ sol = [
     "left_right(-1)",
     "left_right(1)",
     "go_solve()",
-    "saveImage()",
+    "solveLoop()",
 ]
 polar = [
     "'OK' Bright Star",
@@ -664,7 +788,7 @@ exp = [
     "left_right(-1)",
     "left_right(1)",
     "go_solve()",
-    "",
+    "saveImage()",
 ]
 gn = [
     "Gain",
@@ -775,6 +899,10 @@ right.when_pressed = doButton
 up.when_pressed = doButton
 down.when_pressed = doButton
 ok.when_pressed = doButton
+
+wifiloop = Thread(target=serveWifi)
+wifiloop.start()
+time.sleep(0.5)
 
 while True:
     if x == 0 and y == 0 and gotoFlag == False:
