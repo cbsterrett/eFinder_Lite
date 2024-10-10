@@ -79,7 +79,7 @@ class Nexus:
                     subprocess.Popen(["venv-efinder/bin/python","Solver/eFinder_Live.py"])
                 except:
                     print("Failed to start eFinder Live")
-                    self.handpad.display("eFinder", "Can't start", "")
+                    self.handpad.display("eFinder Live", "Can't start", "")
                 sys.exit(0)
 
     def write(self, txt: str) -> None:

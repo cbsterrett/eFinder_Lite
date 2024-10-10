@@ -1,15 +1,13 @@
-#import time
 import serial
 import os
 import sys
 from PIL import Image,ImageDraw,ImageFont
-import board
-import adafruit_adxl34x
+
 
 class Handpad:
     """All methods to work with the handpad"""
 
-    def __init__(self, version: str) -> None:
+    def __init__(self, version, tiltSide="right") -> None:
         """Initialize the Handpad class,
 
         Parameters:
@@ -17,8 +15,16 @@ class Handpad:
         """
         global Image
         self.version = version
-        i2c = board.I2C()
-        self.tilt = adafruit_adxl34x.ADXL345(i2c)
+        self.side = tiltSide.lower()
+        if self.side == 'auto':
+            try:
+                import board
+                import adafruit_adxl34x
+                i2c = board.I2C()
+                self.tilt = adafruit_adxl34x.ADXL345(i2c)
+            except:
+                self.display("tilt set to auto","but no sensor","found")
+                sys.exit()
         libdir = os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), 'drive')
         if os.path.exists(libdir):
             sys.path.append(libdir)
@@ -42,6 +48,16 @@ class Handpad:
         self.USB_module = False
         self.display("ScopeDog", "eFinder v" + self.version, "")
 
+
+    def findSide(self):
+        if self.side == 'auto':
+            return self.tilt.acceleration[1]
+        elif self.side == 'left':
+            return -1
+        else:
+            return 1
+
+
     def bright(self,brightness):
         self.disp.command(0x81)# set Contrast Control - 1st byte
         self.disp.command(int(brightness))# set Contrast Control - 2nd byte - value
@@ -55,7 +71,7 @@ class Handpad:
         self.draw.text((1, 10),line1, font=self.font, fill=255)
         self.draw.text((1, 20),line2,  font=self.font, fill=255)
 
-        if self.tilt.acceleration[1] < 0:
+        if self.findSide() < 0:
             im = self.image.transpose(Image.ROTATE_180)
         else:
             im = self.image
@@ -64,12 +80,12 @@ class Handpad:
         self.disp.ShowImage()
 
     def dispFocus(self, screen):
+       
+        if self.findSide() < 0:
+            screen = screen.transpose(Image.ROTATE_180)
+
         self.draw.rectangle((0,0,self.width,self.height), outline=0, fill=0)
-        if self.tilt.acceleration[1] < 0:
-            im = screen.transpose(Image.ROTATE_180)
-        else:
-            im = screen
-        self.disp.getbuffer(im)
+        self.disp.getbuffer(screen)
         self.disp.ShowImage()
 
 
