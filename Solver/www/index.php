@@ -56,6 +56,10 @@ while(!feof($fp)) {
 			$html .= "<tr><td>$sdType</td><td><input type=text Name=$sdType Value=$sdValue ></td><td>";
 			$html .= " Enter 'ASI' or RPI' as appropriate";
 			break;
+		case "Flip":
+			$html .= "<tr><td>$sdType</td><td><input type=text Name=$sdType Value=$sdValue ></td><td>";
+			$html .= " Enter 'auto', 'right' or 'left' as appropriate";
+			break;
 		case "Drive":
 			$html .= "<tr><td>$sdType</td><td><input type=text Name=$sdType Value=$sdValue ></td><td>";
 			$html .= " Enter 'scopedog', 'servocat' or 'none'";

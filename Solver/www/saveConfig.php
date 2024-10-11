@@ -14,6 +14,7 @@ $Exposure = $_POST['Exposure'];
 $Gain = $_POST['Gain'];
 $Ramdisk = $_POST['Ramdisk'];
 $Camera = $_POST['Camera'];
+$Flip = $_POST['Flip'];
 $Drive = $_POST['Drive'];
 $Test_mode = $_POST['Test_mode'];
 $Goto_mode = $_POST['Goto++_mode'];
@@ -36,6 +37,8 @@ fwrite($fp, $txt);
 $txt = "Ramdisk:" . $Ramdisk . "\n";
 fwrite($fp, $txt);
 $txt = "Camera:" . $Camera . "\n";
+fwrite($fp, $txt);
+$txt = "Flip:" . $Flip . "\n";
 fwrite($fp, $txt);
 $txt = "Drive:" . $Drive . "\n";
 fwrite($fp, $txt);
@@ -92,7 +95,11 @@ while(!feof($fp)) {
 			$html .= "<tr><td>$sdType</td><td><input type=text Name=$sdType Value=$sdValue ></td><td>";
 			$html .= " Enter 'ASI' or RPI' as appropriate";
 			break;
-		case "Drive":
+		case "Flip":
+			$html .= "<tr><td>$sdType</td><td><input type=text Name=$sdType Value=$sdValue ></td><td>";
+			$html .= " Enter 'auto', 'right' or 'left' as appropriate";
+			break;
+			case "Drive":
 			$html .= "<tr><td>$sdType</td><td><input type=text Name=$sdType Value=$sdValue ></td><td>";
 			$html .= " Enter 'scopedog', 'servocat' or 'none'";
 			break;
