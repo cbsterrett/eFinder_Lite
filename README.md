@@ -13,8 +13,8 @@ Requires:
 - Raspberry Pi Zero 2W.
 - Waveshare 4 port USB and UART HAT for the Pi Zero.  
 - A custom box (Raspberry Pi Zero, HAT, OLED display and switches)
-- A Nexus DSC with optical encoders. USB cable from Nexus port to the UART port on the Pi Zero
-- A Camera, either the RP HQ Camera module of an ASI Camera (Suggest ASI120MM-mini)
+- A Nexus DSC with optical encoders. USB cable from Nexus port to the UART port on the UART HAT.
+- A Camera, either the RP HQ Camera module (recommended) of an ASI Camera (Suggest ASI120MM-mini)
 - Camera lens, either 25 or 50mm. f1.8 or faster cctv lens
 
 Full details at [
