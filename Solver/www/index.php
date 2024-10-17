@@ -62,7 +62,7 @@ while(!feof($fp)) {
 			break;
 		case "Drive":
 			$html .= "<tr><td>$sdType</td><td><input type=text Name=$sdType Value=$sdValue ></td><td>";
-			$html .= " Enter 'scopedog', 'servocat' or 'none'";
+			$html .= " Enter 'scopedog', 'servocat', 'sitech' or 'none'";
 			break;
 		case "Test_mode":
 			$html .= "<tr><td>$sdType</td><td><input type=text Name=$sdType Value=$sdValue ></td><td>";
