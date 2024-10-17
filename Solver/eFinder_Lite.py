@@ -122,7 +122,7 @@ def solveImage():
             use_binned=False,
             )
         stars = str(len(centroids))
-        if len(centroids) < 30:
+        if len(centroids) < 20:
             handpad.display("Bad image","only"+ stars," centroids")
             solve = False
             time.sleep(3)
