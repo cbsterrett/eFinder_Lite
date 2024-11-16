@@ -20,11 +20,13 @@ Requires:
 Full details at [
 ](https://astrokeith.com/equipment/efinder/efinder-lite)https://astrokeith.com/equipment/efinder/efinder-lite
 
-## Compatability
+## Compatibility
 
 The eFinder Lite is designed to operate alongside a Nexus DSC (original & Pro). It uses the standard LX200 protcol to communicate with the Nexus DSC via its usb port.
 
 If the Nexus DSC is connected to a drive, GoTo++ can be enabled. Directly compatible drives are ScopeDog, SiTech & SkyTracker. ServoCat drives can be used but since the Nexus DSC usb port is used to connect to the ServoCat drive, the eFinder must be configured to connect to the Nexus DSC via wifi.
+
+If no Nexus is found on boot, the efinder will restart as 'eFinder Live'. This uses just plate-solving to determine telescope position and relay the solution to SkySfari or similar Apps over wifi. A gps dongle or module is required.
 
 ## Operation
 Plug the eFinder into the Nexus DSC port.
