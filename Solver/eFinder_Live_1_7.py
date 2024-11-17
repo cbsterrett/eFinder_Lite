@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
 # Program to implement an eFinder (electronic finder) on motorised Alt Az telescopes
-# Copyright (C) 2022 Keith Venables.
+# Copyright (C) 2024 Keith Venables.
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -10,13 +10,16 @@
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# This variant is customised for ZWO ASI ccds as camera, Nexus DSC as telescope interface
+# This variant is customised for RPi HQ camera.
 # It requires astrometry.net installed
 import os
 import sys
+import socket
 if len(sys.argv) > 1:
-    print ('Killing running version')
+    print ('Killing any eFinder Lite & Live running')
+    os.system('pkill -9 -f eFinder_Live.py') # stops the autostart eFinder program running
     os.system('pkill -9 -f eFinder_Lite.py') # stops the autostart eFinder program running
+
 from pathlib import Path
 home_path = str(Path.home())
 param = dict()
@@ -26,22 +29,24 @@ if os.path.exists(home_path + "/Solver/eFinder.config") == True:
             line = line.strip("\n").split(":")
             param[line[0]] = str(line[1])
 import Display_Lite
-version = "Lite_3_3"
+version = "Live_1_7"
 handpad = Display_Lite.Handpad(version,param["Flip"])
 handpad.display('ScopeDog eFinder','Lite','Version '+ version)
 import time
 import math
+from threading import Thread
 from PIL import Image, ImageDraw,ImageFont, ImageEnhance
-import re
-from skyfield.api import Star
+from skyfield.api import load, Star
 import numpy as np
-import Nexus_Lite
+
+import Location_live
 import Coordinates_Lite
 from gpiozero import Button
 from tetra3 import Tetra3, cedar_detect_client
 cedar_detect = cedar_detect_client.CedarDetectClient()
 import tetra3
 import csv
+from shutil import copyfile
 import datetime
 from datetime import timezone
 
@@ -57,18 +62,99 @@ solve = False
 sync_count = 0
 sDog = True
 gotoFlag = False
-aligning = False
 dispBright = 241
-
+home_path = str(Path.home())
 c= 0
 fnt = ImageFont.truetype(home_path+"/Solver/text.ttf",8)
+prev = 0,0,0
+solved_radec = (0.0,89.9)
+go_to = False
+threshold = 0.4
+ts = load.timescale()
+addr = ""
+hotspot = False
 
-if len(sys.argv) > 1:
-    os.system('pkill -9 -f eFinder_Lite.py') # stops the autostart eFinder program running
 try:
     os.mkdir("/var/tmp/solve")
 except:
     pass
+
+def serveWifi(): # serve WiFi port
+    global gotoRa,gotoDec, go_to,doMove, dirMove, solved_radec, speed, goto_altaz, addr
+    print ('starting wifi server')
+    host = ''
+    port = 4060
+    backlog = 50
+    size = 1024
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    s.bind((host,port))
+    s.listen(backlog)
+    try:
+        while True:
+            client, address = s.accept()
+            while True:
+                data = client.recv(size)
+                if not data:
+                    break
+                if data:
+                    pkt = data.decode("utf-8","ignore")
+                    time.sleep(0.02)
+                    a = pkt.split('#')
+                    #print(a)
+                    raPacket = coordinates.dd2dms(solved_radec[0])+'#'
+                    decPacket = coordinates.dd2aligndms(solved_radec[1])+'#'
+                    for x in a:
+                        if x != '':
+                            #print (x)
+                            if x == ':GR':
+                                client.send(bytes(raPacket.encode('ascii')))
+                            elif x == ':GD':
+                                client.send(bytes(decPacket.encode('ascii')))
+                            elif x[1:3] == 'Sr': # goto instructions incoming
+                                raStr = x[3:]
+                                client.send(b'1')
+                            elif x[1:3] == 'Sd': # goto instructions incoming
+                                decStr = x[3:]
+                                client.send(b'1')  
+                            elif x[1:3] == 'MS':
+                                client.send(b'0')
+                                ra = raStr.split(':')
+                                gotoRa = int(ra[0])+int(ra[1])/60+int(ra[2])/3600
+                                dec = decStr.split('*')
+                                decdec = dec[1].split(':')
+                                gotoDec = int(dec[0]) + math.copysign((int(decdec[0])/60+int(decdec[1])/3600),float(dec[0]))
+                                print('GoTo target received:',gotoRa, gotoDec)
+                                goto_radec = gotoRa, gotoDec
+                                goto_altaz = conv_altaz(*(goto_radec))
+                                print('goto AltAz',goto_altaz)
+                                go_to = True
+                            elif x[1] == 'Q':
+                                print('STOP!')
+                                go_to = False
+                                doMove = False
+    except:
+        pass
+
+def conv_altaz(ra: float, dec: float):
+
+    Rad = math.pi / 180
+    t = ts.now()
+    LST = t.gmst + geoloc.get_long() / 15  # as decimal hours
+    ra = ra * 15  # need to work in degrees now
+    LSTd = LST * 15
+    LHA = (LSTd - ra + 360) - ((int)((LSTd - ra + 360) / 360)) * 360
+    x = math.cos(LHA * Rad) * math.cos(dec * Rad)
+    y = math.sin(LHA * Rad) * math.cos(dec * Rad)
+    z = math.sin(dec * Rad)
+    xhor = x * math.cos((90 - geoloc.get_lat()) * Rad) - z * math.sin(
+        (90 - geoloc.get_lat()) * Rad)
+    yhor = y
+    zhor = x * math.sin((90 - geoloc.get_lat()) * Rad) + z * math.cos(
+        (90 - geoloc.get_lat()) * Rad)
+    az = math.atan2(yhor, xhor) * (180 / math.pi) + 180
+    alt = math.asin(zhor) * (180 / math.pi)
+    return (alt, az)   
 
 def pixel2dxdy(pix_x, pix_y):  # converts a pixel position, into a delta angular offset from the image centre
     global cam
@@ -108,11 +194,11 @@ def capture():
     )
 
 
-def solveImage():
-    global offset_flag, solve, solvedPos, elapsed_time, solved_radec, solved_altaz, firstStar, solution, cam, stars
+def solveImage(looping = False):
+    global offset_flag, solve, solvedPos, elapsed_time, solved_radec, solved_altaz, firstStar, solution, cam, stars, go_to
 
     start_time = time.time()
-    handpad.display("Started solving", "", "")
+    #handpad.display("Started solving", "", "")
     captureFile = destPath + "capture.png"
     with Image.open(captureFile).convert('L') as img:
         centroids = cedar_detect.extract_centroids(
@@ -122,10 +208,10 @@ def solveImage():
             use_binned=False,
             )
         stars = str(len(centroids))
-        if len(centroids) < 30:
+        if len(centroids) < 20:
             handpad.display("Bad image","only"+ stars," centroids")
             solve = False
-            time.sleep(3)
+            time.sleep(1)
             return
         solution = t3.solve_from_centroids(
                         centroids,
@@ -149,72 +235,40 @@ def solveImage():
         ra_hours=ra / 15, dec_degrees=dec
     )  # will set as J2000 as no epoch input
     solvedPos = (
-        nexus.get_location().at(coordinates.get_ts().now()).observe(solved)
+        geoloc.get_location().at(coordinates.get_ts().now()).observe(solved)
     )  # now at Jnow and current location
 
     ra, dec, d = solvedPos.apparent().radec(coordinates.get_ts().now())
     solved_radec = ra.hours, dec.degrees
-    solved_altaz = coordinates.conv_altaz(nexus, *(solved_radec))
-    arr[0, 1][0] = "Sol: RA " + coordinates.hh2dms(solved_radec[0])
-    arr[0, 1][1] = "   Dec " + coordinates.dd2dms(solved_radec[1])
-    arr[0, 1][2] = stars + " stars in " + elapsed_time + " s"
-    solve = True
-
-def align():
-    global aligning, align_count
-    if nexus.is_aligned() == False: # need to do the 2* alignment procedure.
-        aligning = True
-        if align_count == 0: # need to prepare to do first star
-            handpad.display('Nexus 2 star align','Point scope','then press OK')
-            align_count = 1
-            #time.sleep(5)
-            return
-        elif align_count == 1: # now do the first star & prepare for next
-            doAlign()
-            handpad.display('First star done','Move scope','then press OK')
-            align_count = 2
-            return
-        elif align_count == 2: # now do 2nd star
-            doAlign()
-            p = nexus.get(":GW#")
-            if p[1] == "T": 
-                arr[2,0][1] = "Nexus is aligned"
-                nexus.set_aligned(True)
-                handpad.display('Nexus 2 star align','Successful','')
-                time.sleep(5)
-                aligning = False
+    solved_altaz = conv_altaz(*(solved_radec))
+    if looping:
+        arr[0, 1][0] = "Sol: Az " + coordinates.ddd2dms(solved_altaz[1])
+        arr[0, 1][1] = "   Alt " + coordinates.dd2dms(solved_altaz[0])
+        if go_to == True:
+            ddAz = goto_altaz[1] - solved_altaz[1]
+            if ddAz > 180:
+                ddAz = (ddAz - 180) * -1
+            elif ddAz < -180:
+                ddAz = (ddAz +180) * -1
+            ddAlt = goto_altaz[0] - solved_altaz[0]
+            if ddAz < 0:
+                sAz = 'L'
             else:
-                handpad.display('Align unsuccessful','Reboot Nexus','Then try again')
-                time.sleep(5)
-                aligning = False
+                sAz = 'R'
+            if ddAlt < 0:
+                sAlt = 'Dn'
+            else:
+                sAlt = 'Up'
+            dAz = ('%s %3.2f' % (sAz,abs(ddAz)))
+            dAlt = ('%s %2.2f' % (sAlt, abs(ddAlt)))
+            arr[0, 1][2] = dAz + '   ' + dAlt
+        else:
+            arr[0, 1][2] = stars + " stars in " + elapsed_time + " s"
     else:
-        doAlign()
-        handpad.display(arr[x, y][0], arr[x, y][1], arr[x, y][2])
-
-def doAlign():
-    global align_count, solve, sync_count, param, offset_flag, arr, x,y, cam
-    new_arr = nexus.read_altAz(arr)
-    arr = new_arr
-    capture()
-    solveImage()
-    if solve == False:
-        handpad.display(arr[x, y][0], "Solved Failed", arr[x, y][2])
-        return
-    align_ra = ":Sr" + coordinates.dd2dms((solved_radec)[0]) + "#"
-    align_dec = ":Sd" + coordinates.dd2aligndms((solved_radec)[1]) + "#"
-    valid = nexus.get(align_ra)
-    if valid == "0":
-        handpad.display(arr[x, y][0], "Invalid position", arr[x, y][2])
-        time.sleep(3)
-        return
-    valid = nexus.get(align_dec)
-    if valid == "0":
-        handpad.display(arr[x, y][0], "Invalid position", arr[x, y][2])
-        time.sleep(3)
-        return
-    reply = nexus.get(":CM#")
-    nexus.read_altAz(arr)
-   
+        arr[0, 1][0] = "Sol: RA " + coordinates.hh2dms(solved_radec[0])
+        arr[0, 1][1] = "   Dec " + coordinates.dd2dms(solved_radec[1])
+        arr[0, 1][2] = stars + " stars in " + elapsed_time + " s"
+    solve = True
 
 def measure_offset():
     global offset_str, offset_flag, offset, param, scope_x, scope_y, firstStar
@@ -280,16 +334,13 @@ def flip():
 def update_summary():
     global param, arr
     arr[1, 0][0] = ("Ex:" + str(param["Exposure"]) + "  Gn:" + str(param["Gain"]))
-    if drive == True:
-        arr[1, 0][1] = "Test:" + str(param["Test_mode"]) + " GoTo++:" + str(param["Goto++_mode"])
-    else:
-        arr[1, 0][1] = "Test:" + str(param["Test_mode"])
+    arr[1, 0][1] = "Test:" + str(param["Test_mode"])
     save_param()
 
 def go_solve():
     global x, y, solve, arr
-    new_arr = nexus.read_altAz(arr)
-    arr = new_arr
+    #new_arr = nexus.read_altAz(arr)
+    #arr = new_arr
     handpad.display("Image capture", "", "")
     capture()
 
@@ -304,82 +355,20 @@ def go_solve():
     y = 1
     handpad.display(arr[x, y][0], arr[x, y][1], arr[x, y][2])
 
-def gotoDistant():
-    nexus.read_altAz(arr)
-    nexus_radec = nexus.get_radec()
-    deltaRa = abs(nexus_radec[0]-goto_radec[0])*15
-    if deltaRa > 180:
-        deltaRa = abs(deltaRa - 360)
-    deltaDec = abs(nexus_radec[1]-goto_radec[1])
-    if deltaRa+deltaDec > 5:
-        return(True)
-    else:
-        return(False)
-
-def readTarget():
-    global goto_radec,goto_ra,goto_dec
-    goto_ra = nexus.get(":Gr#")
-    if (goto_ra[0:2] == "00" and goto_ra[3:5] == "00"):  # not a valid goto target set yet.
-        handpad.display("no GoTo target","set yet","")
-        return
-    goto_dec = nexus.get(":Gd#")
-    ra = goto_ra.split(":")
-    dec = re.split(r"[:*]", goto_dec)
-    goto_radec = (float(ra[0]) + float(ra[1]) / 60 + float(ra[2]) / 3600), math.copysign(
-            abs(abs(float(dec[0])) + float(dec[1]) / 60 + float(dec[2]) / 3600),
-            float(dec[0]))
-
-def goto():
-    global gotoFlag
-    if drive == False:
-        handpad.display("No Drive", "Connected", "")
-        return
-    handpad.display("Starting", "GoTo", "")
-    gotoFlag = True
-    readTarget()
-    if gotoDistant():
-        if sDog == True:     
-            nexus.write(":Sr" + goto_ra + "#")
-            nexus.write(":Sd" + goto_dec + "#")
-            reply = nexus.get(":MS#")
-        else:    
-            gotoStr = '%s%06.3f %+06.3f' %("g",goto_radec[0],goto_radec[1])
-            servocat.send(gotoStr)
-        handpad.display("Performing", " GoTo", "")
-        time.sleep(1)
-        gotoStopped()
-        handpad.display("Finished", " GoTo", "")
-        go_solve()
-        if int(param["Goto++_mode"]) == 0:
-            return
-    handpad.display("Attempting", " GoTo++", "")
-    align() # close, so local sync scope to true RA & Dec
-    if sDog == True:
-        nexus.write(":Sr" + goto_ra + "#")
-        nexus.write(":Sd" + goto_dec + "#")
-        reply = nexus.get(":MS#")
-    else:
-        gotoStr = '%s%06.3f %+06.3f' %("g",goto_radec[0],goto_radec[1])
-        servocat.send(gotoStr)
-    gotoStopped()
-    gotoFlag = False
-    handpad.display("Finished", " GoTo++", "")
-    go_solve()
-
-
-def getRadec():
-    nexus.read_altAz(None)
-    return(nexus.get_radec())
-
-def gotoStopped():
-    radecNow = getRadec()
+def solveLoop():
+    global x, y, prev
     while True:
-        time.sleep(2)
-        radec = getRadec()
-        if (abs(radecNow[0] - radec[0])*15 < 0.01) and (abs(radecNow[1] - radec[1]) < 0.01):
-            return
-        else:
-            radecNow = radec
+        capture()
+        solveImage(True)
+        handpad.display(arr[x, y][0], arr[x, y][1], arr[x, y][2])
+        if up.is_pressed:
+            x = y = 0
+            break
+        while abs(tilt.acceleration[0] - prev[0]) > threshold or abs(tilt.acceleration[1] - prev[1]) > threshold or abs(tilt.acceleration[2] - prev[2]) > threshold:
+            handpad.display(arr[x, y][0], arr[x, y][1], "Scope moving")
+            time.sleep(0.2)
+            prev = tilt.acceleration
+
 
 def reset_offset():
     global param, arr, offset
@@ -412,14 +401,6 @@ def home_refresh():
     while True:
         if x == 0 and y == 0:
             time.sleep(1)
-        while x ==0 and y==0:
-            nexus.read_altAz(arr)
-            radec = nexus.get_radec()
-            ra = coordinates.hh2dms(radec[0])
-            dec = coordinates.dd2dms(radec[1])
-            handpad.display('Nexus live',' RA:  '+ra, 'Dec: '+dec)
-            time.sleep(0.5)
-        else:
             handpad.display(arr[x, y][0], arr[x, y][1], arr[x, y][2])
             time.sleep (0.5)
 
@@ -522,7 +503,7 @@ def adjExposure(pk): # auto
 
 def adjExp(i): #manual
     global param
-    param['Exposure'] = ('%.1f' % (float(param['Exposure']) + i*expInc))
+    param['Exposure'] = ('%.1f' % (float(param['Exposure']) + i*0.1))
     update_summary()
     arr[1,1][1]= param['Exposure']
     loopFocus(0)
@@ -562,8 +543,6 @@ def loopFocus(auto):
         y2=int(centroids[0][1]+w)
         if y2 > img.size[0]:
             y2 = img.size[0]
-
-        
 
         patch = np_image[x1:x2,y1:y2]
         imp = Image.fromarray(np.uint8(patch),'L')
@@ -619,11 +598,30 @@ def saveImage():
     img.save(home_path + "/Solver/images/image.png")
     handpad.display(arr[x, y][0], arr[x, y][1], "image saved")
 
+def setWifi():
+    global arr, hotspot
+    hotspot =  not hotspot
+    if hotspot == True:
+        handpad.display('Setting up','Wifi Hotspot','please wait')
+        os.system("sudo nmcli device wifi hotspot ssid 'efinder' password 'efinder1'")
+        arr[2,0][0] = 'ssid: efinder' 
+        arr[2,0][1] = '10.42.0.1'
+        handpad.display(arr[x, y][0], arr[x, y][1], arr[x,y][2])
+    else:
+        os.system('sudo nmcli device disconnect wlan0')
+        os.system('sudo nmcli connection up preconfigured')
+        handpad.display('Connecting to','Preconfigured wifi','please wait')
+        time.sleep(5)
+        hostname = socket.gethostname()
+        addr = socket.gethostbyname(hostname + '.local')
+        arr[2,0][0] = hostname
+        arr[2,0][1] = 'IP:'+addr
+        handpad.display(arr[x, y][0], arr[x, y][1], arr[x,y][2])
 # main code starts here
 
 coordinates = Coordinates_Lite.Coordinates()
-nexus = Nexus_Lite.Nexus(handpad, coordinates)
-nexus.read()
+geoloc = Location_live.Geoloc(handpad, coordinates)
+geoloc.read()
 setTilt()
 
 if param["Camera"]=='ASI':
@@ -666,6 +664,10 @@ print(offset)
 # example: left_right(-1) allows left button to scroll to the next left screen
 # button texts are infact def functions
 p = ""
+hostname = socket.gethostname()
+addr = socket.gethostbyname(hostname + '.local')
+
+locStr = ('Geo: %2.2f , %3.2f' % (geoloc.get_lat(),geoloc.get_long()))
 home = [
     "Nexus live",
     " RA:",
@@ -686,7 +688,7 @@ sol = [
     "left_right(-1)",
     "left_right(1)",
     "go_solve()",
-    "saveImage()",
+    "solveLoop()",
 ]
 polar = [
     "'OK' Bright Star",
@@ -699,7 +701,7 @@ polar = [
     "measure_offset()",
     "reset_offset()",
 ]
-summary = ["", "", "", "up_down(-1)", "up_down(1)", "", "left_right(1)", "go_solve()", ""]
+summary = ["","", "", "up_down(-1)", "up_down(1)", "", "left_right(1)", "go_solve()", ""]
 exp = [
     "Exposure",
     param["Exposure"],
@@ -709,7 +711,7 @@ exp = [
     "left_right(-1)",
     "left_right(1)",
     "go_solve()",
-    "",
+    "saveImage()",
 ]
 gn = [
     "Gain",
@@ -745,15 +747,15 @@ mode = [
     "",
 ]
 status = [
-    "Nexus via " + nexus.get_nexus_link(),
-    "Nex align " + str(nexus.is_aligned()),
-    param["Camera"]+ ' with ' + str(param["Lens_focal_length"]) + 'mm lens',
+    hostname, 
+    "IP:"+addr,
+    locStr,
     "up_down(-1)",
     "",
     "",
     "left_right(1)",
     "go_solve()",
-    "",
+    "setWifi()",
 ]
 bright = [
     "Handpad",
@@ -762,14 +764,14 @@ bright = [
     "AdjBright(1)",
     "AdjBright(-1)",
     "left_right(-1)",
-    "left_right(1)",
+    "",
     "go_solve()",
     "",
 ]
 focus = [
     "Focus",
     "Utility",
-    "'OK' to image",
+    "OK to image",
     "adjExp(1)",
     "adjExp(-1)",
     "left_right(-1)",
@@ -785,28 +787,7 @@ arr = np.array(
     ]
 )
 
-new_arr = nexus.read_altAz(arr)
-arr = new_arr
 
-if param["Drive"].lower()=='servocat':
-    import ServoCat
-    servocat = ServoCat.ServoCat()
-    sDog = False
-    print('ServoCat mode')
-    drive = True
-    arr[2,0][1] = "ServoCat mode"
-elif param["Drive"].lower()=='scopedog':
-    print('ScopeDog mode')
-    drive = True
-    arr[2,0][1] = "ScopeDog mode"
-elif param["Drive"].lower()=='sitech':
-    print('SiTech mode')
-    drive = True
-    arr[2,0][1] = "SiTech mode" 
-else:
-    print('No drive')
-    arr[2,0][1] = "No drive"
-    drive = False
 if param["Ramdisk"].lower()=='true':
     destPath = "/var/tmp/solve/"
 else:
@@ -825,18 +806,13 @@ up.when_pressed = doButton
 down.when_pressed = doButton
 ok.when_pressed = doButton
 
+wifiloop = Thread(target=serveWifi)
+wifiloop.start()
+time.sleep(0.5)
+
 while True:
-    if x == 0 and y == 0 and gotoFlag == False and aligning == False:
-        nexus.read_altAz(arr)
-        radec = nexus.get_radec()
-        if nexus.is_aligned() == True:
-            tick = "Aligned"
-        else:
-            tick = "Not Aligned"
-        if param["Test_mode"] == '1':
-            tick = 'test mode'
-        ra = coordinates.hh2dms(radec[0])
-        dec = coordinates.dd2dms(radec[1])
-        handpad.display('Nexus:  '+tick,' RA:  '+ra, 'Dec: '+dec)
-        time.sleep(0.2)
+    if x == 0 and y == 0 and gotoFlag == False:
+        sta = datetime.datetime.now(timezone.utc)
+        stamp = sta.strftime("%d/%m/%y %H:%M:%S")
+        handpad.display('eFinder Live','Ver: '+version,stamp)
     time.sleep(0.2)
