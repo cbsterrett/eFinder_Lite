@@ -90,6 +90,9 @@ def serveWifi(): # serve WiFi port
     s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     s.bind((host,port))
     s.listen(backlog)
+    hostname = socket.gethostname()
+    addr = socket.gethostbyname(hostname + '.local') 
+
     try:
         while True:
             client, address = s.accept()
