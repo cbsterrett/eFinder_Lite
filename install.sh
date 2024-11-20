@@ -129,6 +129,7 @@ sudo chmod a+rwx /home/efinder/Solver
 sudo chmod a+rwx /home/efinder/Solver/eFinder.config
 sudo cp eFinder_Lite/Solver/www/*.* /var/www/html
 sudo mv /var/www/html/index.html /var/www/html/apacheindex.html
+sudo chmod -R 755 /var/www/html
 
 echo " "
 echo "*****************************************************************************"
