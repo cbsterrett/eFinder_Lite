@@ -37,6 +37,7 @@ venv-efinder/bin/python venv-efinder/bin/pip install grpcio
 venv-efinder/bin/python venv-efinder/bin/pip install grpcio-tools
 venv-efinder/bin/python venv-efinder/bin/pip install gdown
 venv-efinder/bin/python venv-efinder/bin/pip install gps3
+venv-efinder/bin/python venv-efinder/bin/pip install tzlocal
 
 sudo -u efinder git clone https://github.com/smroid/cedar-detect.git
 sudo -u efinder git clone https://github.com/smroid/cedar-solve.git
