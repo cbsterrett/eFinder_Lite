@@ -105,7 +105,7 @@ def serveWifi(): # serve WiFi port
                     time.sleep(0.02)
                     a = pkt.split('#')
                     #print(a)
-                    raPacket = coordinates.dd2dms(solved_radec[0])+'#'
+                    raPacket = coordinates.hh2dms(solved_radec[0])+'#'
                     decPacket = coordinates.dd2aligndms(solved_radec[1])+'#'
                     for x in a:
                         if x != '':
