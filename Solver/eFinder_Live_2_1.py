@@ -761,7 +761,7 @@ home = [
     "up_down(1)",
     "AdjBright(0)",
     "left_right(1)",
-    "align()",
+    "go_solve()",
     "goto()",
 ]
 sol = [
