@@ -8,12 +8,12 @@ import os
 import logging
 import tzlocal
 import json
-import Display_64
+import Display_Lite
 import subprocess
 
 class Seestar():
 
-    def __init__(self,handpad: Display_64,lat,long, mySSID, myPassword):
+    def __init__(self,handpad: Display_Lite,lat,long, mySSID, myPassword):
 
         self.logger = self.CreateLogger()
         version_string = "ver 1"
