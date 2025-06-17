@@ -26,6 +26,8 @@ The eFinder Lite is designed to operate alongside a Nexus DSC (original & Pro). 
 
 If the Nexus DSC is connected to a drive, GoTo++ can be enabled. Directly compatible drives are ScopeDog, SiTech & SkyTracker. ServoCat drives can be used but since the Nexus DSC usb port is used to connect to the ServoCat drive, the eFinder must be configured to connect to the Nexus DSC via wifi.
 
+A Raspberry Pi HQ camera module is strongly recommended. The Arduino clone will also work, but the config.txt file needs ammending. change to camera_auto_detect=0 and add dtoverlay=IMX477
+
 If no Nexus is found on boot, the efinder will restart as 'eFinder Live'. This uses just plate-solving to determine telescope position and relay the solution to SkySfari or similar Apps over wifi. A gps dongle or module is required.
 
 ## Operation
