@@ -247,7 +247,6 @@ def measure_offset():
                     break       
     handpad.display(arr[0,2][0], arr[0,2][1], name + ', HIP ' + hipId)
     offset_flag = False
-    solveImage()
 
 def up_down(v):
     global x
@@ -657,8 +656,8 @@ else:
 handpad.display('Done','','')
 
 pix_x, pix_y, dxstr, dystr = dxdy2pixel(float(param["d_x"])/60, float(param["d_y"])/60)
-offset_str = dxstr + "," + dystr
 
+offset_str = ('%1.4f,%1.4f' % ((float(param["d_x"])/60, float(param["d_y"])/60)))
 offset = (pix_y, pix_x) 
 print(offset)
 # array determines what is displayed, computed and what each button does for each screen.
