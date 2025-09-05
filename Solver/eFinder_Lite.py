@@ -14,6 +14,25 @@
 # It requires astrometry.net installed
 import os
 import sys
+import logging
+
+# Get a logger instance
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG) # Set the logger's overall level
+
+# Create a FileHandler
+file_handler = logging.FileHandler('eFinder_Lite.log', mode='a')
+file_handler.setLevel(logging.INFO) # Set the file handler's level
+
+# Create a Formatter
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(name)s - %(message)s')
+
+# Set the formatter for the file handler
+file_handler.setFormatter(formatter)
+
+# Add the file handler to the logger
+logger.addHandler(file_handler)
+
 if len(sys.argv) > 1:
     print ('Killing running version')
     os.system('pkill -9 -f eFinder_Lite.py') # stops the autostart eFinder program running
@@ -29,6 +48,7 @@ import Display_Lite
 version = "Lite_3_3"
 handpad = Display_Lite.Handpad(version,param["Flip"])
 handpad.display('ScopeDog eFinder','Lite','Version '+ version)
+logger.info('ScopeDog eFinder Lite Version '+ version)
 import time
 import math
 from PIL import Image, ImageDraw,ImageFont, ImageEnhance
@@ -46,6 +66,8 @@ import datetime
 from datetime import timezone
 
 handpad.display('ScopeDog eFinder','Lite','Loading program')
+logger.info('ScopeDog eFinder' + ' ' + 'Lite' + ' ' +'Loading program')
+
 x = y = 0  # x, y  define what page the display is showing
 deltaAz = deltaAlt = 0
 expInc = 0.1 # sets how much exposure changes when using handpad adjust (seconds)
@@ -113,6 +135,7 @@ def solveImage():
 
     start_time = time.time()
     handpad.display("Started solving", "", "")
+    logger.info("Started solving")
     captureFile = destPath + "capture.png"
     with Image.open(captureFile).convert('L') as img:
         centroids = cedar_detect.extract_centroids(
@@ -124,6 +147,7 @@ def solveImage():
         stars = str(len(centroids))
         if len(centroids) < 30:
             handpad.display("Bad image","only"+ stars," centroids")
+            logger.error("Bad image" + " " + "only"+ stars + " " + "centroids")
             solve = False
             time.sleep(3)
             return
@@ -140,6 +164,7 @@ def solveImage():
 
     if solution['RA'] == None:
         handpad.display("Not Solved",stars + " centroids", "")
+        logger.error("Not Solved" + " " + stars + " centroids")
         solve = False
         return
     firstStar = centroids[0]
@@ -166,30 +191,35 @@ def align():
         aligning = True
         if align_count == 0: # need to prepare to do first star
             handpad.display('Nexus 2 star align','Point scope','then press OK')
+            logger.info('Nexus 2 star align' + ' ' 'Point scope' + ' ' +'then press OK')
             align_count = 1
             #time.sleep(5)
             return
         elif align_count == 1: # now do the first star & prepare for next
             doAlign()
             handpad.display('First star done','Move scope','then press OK')
+            logger.info('First star done' + ' ' +'Move scope' + ' ' +'then press OK')
             align_count = 2
             return
         elif align_count == 2: # now do 2nd star
             doAlign()
             p = nexus.get(":GW#")
-            if p[1] == "T": 
+            if p[1] == "T":
                 arr[2,0][1] = "Nexus is aligned"
                 nexus.set_aligned(True)
                 handpad.display('Nexus 2 star align','Successful','')
+                logger.info('Nexus 2 star align' + ' ' +'Successful')
                 time.sleep(5)
                 aligning = False
             else:
                 handpad.display('Align unsuccessful','Reboot Nexus','Then try again')
+                logger.error('Align unsuccessful' + ' ' +'Reboot Nexus' + ' ' +'Then try again')
                 time.sleep(5)
                 aligning = False
     else:
         doAlign()
         handpad.display(arr[x, y][0], arr[x, y][1], arr[x, y][2])
+        logger.info(arr[x, y][0] + ' ' + arr[x, y][1] + ' ' + arr[x, y][2])
 
 def doAlign():
     global align_count, solve, sync_count, param, offset_flag, arr, x,y, cam
@@ -199,31 +229,36 @@ def doAlign():
     solveImage()
     if solve == False:
         handpad.display(arr[x, y][0], "Solved Failed", arr[x, y][2])
+        logger.error(arr[x, y][0] + ' ' + "Solved Failed" + ' ' + arr[x, y][2])
         return
     align_ra = ":Sr" + coordinates.dd2dms((solved_radec)[0]) + "#"
     align_dec = ":Sd" + coordinates.dd2aligndms((solved_radec)[1]) + "#"
     valid = nexus.get(align_ra)
     if valid == "0":
         handpad.display(arr[x, y][0], "Invalid position", arr[x, y][2])
+        logger.error(arr[x, y][0] + ' ' + "Invalid position" + ' ' + arr[x, y][2])
         time.sleep(3)
         return
     valid = nexus.get(align_dec)
     if valid == "0":
         handpad.display(arr[x, y][0], "Invalid position", arr[x, y][2])
+        logger.error(arr[x, y][0] + ' ' + "Invalid position" + ' ' + arr[x, y][2])
         time.sleep(3)
         return
     reply = nexus.get(":CM#")
     nexus.read_altAz(arr)
-   
+
 
 def measure_offset():
     global offset_str, offset_flag, offset, param, scope_x, scope_y, firstStar
     offset_flag = True
     handpad.display("started capture", "", "")
+    logger.info("started offset capture")
     capture()
     solveImage()
     if solve == False:
         handpad.display("solve failed", "", "")
+        logger.error("solve failed")
         return
     scope_x = firstStar[1]
     scope_y = firstStar[0]
@@ -244,8 +279,10 @@ def measure_offset():
                 if str(row[1]) == str(solution['matched_catID'][0]):
                     hipId = hip
                     name = nam
-                    break       
+                    break
     handpad.display(arr[0,2][0], arr[0,2][1], name + ', HIP ' + hipId)
+    logger.info("Bright star found")
+    logger.info(arr[0,2][0] + ' ' + arr[0,2][1] + ' ' + name + ', HIP ' + hipId)
     offset_flag = False
 
 def up_down(v):
@@ -291,18 +328,23 @@ def go_solve():
     new_arr = nexus.read_altAz(arr)
     arr = new_arr
     handpad.display("Image capture", "", "")
+    logger.info("Image capture")
     capture()
 
     handpad.display("Plate solving", "", "")
+    logger.info("Plate solving")
     solveImage()
     if solve == True:
         handpad.display("Solved", "", "")
+        logger.info("Solved")
     else:
         handpad.display("Not Solved", "", "")
+        logger.error("Not Solved")
         return
     x = 0
     y = 1
     handpad.display(arr[x, y][0], arr[x, y][1], arr[x, y][2])
+    logger.info(arr[x, y][0] + ' ' + arr[x, y][1] + ' ' + arr[x, y][2])
 
 def gotoDistant():
     nexus.read_altAz(arr)
@@ -321,6 +363,7 @@ def readTarget():
     goto_ra = nexus.get(":Gr#")
     if (goto_ra[0:2] == "00" and goto_ra[3:5] == "00"):  # not a valid goto target set yet.
         handpad.display("no GoTo target","set yet","")
+        logger.error("no GoTo target" + ' ' + "set yet")
         return
     goto_dec = nexus.get(":Gd#")
     ra = goto_ra.split(":")
@@ -333,26 +376,31 @@ def goto():
     global gotoFlag
     if drive == False:
         handpad.display("No Drive", "Connected", "")
+        logger.info("No Drive Connected")
         return
     handpad.display("Starting", "GoTo", "")
+    logger.info("Starting GoTo")
     gotoFlag = True
     readTarget()
     if gotoDistant():
-        if sDog == True:     
+        if sDog == True:
             nexus.write(":Sr" + goto_ra + "#")
             nexus.write(":Sd" + goto_dec + "#")
             reply = nexus.get(":MS#")
-        else:    
+        else:
             gotoStr = '%s%06.3f %+06.3f' %("g",goto_radec[0],goto_radec[1])
             servocat.send(gotoStr)
         handpad.display("Performing", " GoTo", "")
+        logger.info("Performing GoTo")
         time.sleep(1)
         gotoStopped()
         handpad.display("Finished", " GoTo", "")
+        logger.info("Finished GoTo")
         go_solve()
         if int(param["Goto++_mode"]) == 0:
             return
     handpad.display("Attempting", " GoTo++", "")
+    logger.info("Attempting GoTo++")
     align() # close, so local sync scope to true RA & Dec
     if sDog == True:
         nexus.write(":Sr" + goto_ra + "#")
@@ -364,6 +412,7 @@ def goto():
     gotoStopped()
     gotoFlag = False
     handpad.display("Finished", " GoTo++", "")
+    logger.info("Finished GoTo++")
     go_solve()
 
 
@@ -389,6 +438,7 @@ def reset_offset():
     offset = (cam[0]/2, cam[1]/2) # default centre of the image
     arr[0,2][1] = "new " + offset_str
     handpad.display(arr[x, y][0], arr[x, y][1], arr[x, y][2])
+    logger.info(arr[x, y][0] + " " + arr[x, y][1] + " " + arr[x, y][2])
     save_param()
 
 def get_param():
@@ -436,7 +486,7 @@ def setTilt():
             handpad.display("Flip set to auto","but no sensor","setting to 'right'")
             sys.exit()
     else:
-        side = param["Flip"].lower()       
+        side = param["Flip"].lower()
 
 def findTilt():
     if side == 'auto':
@@ -459,7 +509,7 @@ def doButton(button):
             exec(arr[x, y][7])
             stop = True
         #time.sleep(0.1)
-    
+
     if findTilt() > 0:
         if pin == '5':
             time.sleep(0.05)
@@ -536,19 +586,23 @@ def loopFocus(auto):
         if auto == 1 and (pk < 200 or pk > 250):
             adjExposure(pk)
             handpad.display('Adjusting Exposure','trying',str(param['Exposure']) + ' sec')
+            logger.info('Adjusting Exposure trying' +' ' + str(param['Exposure']) + ' sec')
             loopFocus(1)
         elif auto == 1 and (200 <= pk <= 250):
             handpad.display('Exposure OK','','')
+            logger.info('Exposure OK')
         centroids = tetra3.get_centroids_from_image(
             np_image,
             downsample=1,
             )
-        if centroids.size < 1: 
+        if centroids.size < 1:
             handpad.display('No stars found','','')
+            logger.error('No stars found')
             time.sleep(3)
             handpad.display(arr[x, y][0], arr[x, y][1], arr[x, y][2])
+            logger.info(arr[x, y][0] + ' ' + arr[x, y][1] + ' ' + arr[x, y][2])
             return
-        
+
         w=16
         x1=int(centroids[0][0]-w)
         if x1 < 0:
@@ -563,7 +617,7 @@ def loopFocus(auto):
         if y2 > img.size[0]:
             y2 = img.size[0]
 
-        
+
 
         patch = np_image[x1:x2,y1:y2]
         imp = Image.fromarray(np.uint8(patch),'L')
@@ -618,6 +672,7 @@ def saveImage():
     annotated.text((4,4),stamp,font = fnt,fill='white')
     img.save(home_path + "/Solver/images/image.png")
     handpad.display(arr[x, y][0], arr[x, y][1], "image saved")
+    logger.info(arr[x, y][0] + " " + arr[x, y][1] + " image saved")
 
 # main code starts here
 
@@ -643,7 +698,7 @@ elif param["Camera"]=='RPI':
         camCam = (960,760,25.4,6.8)
     elif param["Lens_focal_length"] == '25':
         dataBase = 't3_fov14_mag8'
-        camCam = (960,760,50.8,13.5)   
+        camCam = (960,760,50.8,13.5)
 
 Testcam = (960,760,50.8,13.5)
 handpad.display('Please wait','loading Tetra3','database')
@@ -658,7 +713,7 @@ handpad.display('Done','','')
 pix_x, pix_y, dxstr, dystr = dxdy2pixel(float(param["d_x"])/60, float(param["d_y"])/60)
 
 offset_str = ('%1.4f,%1.4f' % ((float(param["d_x"])/60, float(param["d_y"])/60)))
-offset = (pix_y, pix_x) 
+offset = (pix_y, pix_x)
 print(offset)
 # array determines what is displayed, computed and what each button does for each screen.
 # [first line,second line,third line, up button action,down...,left...,right...,select button short press action, long press action]
@@ -802,7 +857,7 @@ elif param["Drive"].lower()=='scopedog':
 elif param["Drive"].lower()=='sitech':
     print('SiTech mode')
     drive = True
-    arr[2,0][1] = "SiTech mode" 
+    arr[2,0][1] = "SiTech mode"
 else:
     print('No drive')
     arr[2,0][1] = "No drive"

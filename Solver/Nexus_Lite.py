@@ -10,6 +10,24 @@ import Display_Lite
 import Coordinates_Lite
 import subprocess
 import sys
+import logging
+
+# Get a logger instance
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG) # Set the logger's overall level
+
+# Create a FileHandler
+file_handler = logging.FileHandler('Nexus_Lite.log', mode='a')
+file_handler.setLevel(logging.INFO) # Set the file handler's level
+
+# Create a Formatter
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(name)s - %(message)s')
+
+# Set the formatter for the file handler
+file_handler.setFormatter(formatter)
+
+# Add the file handler to the logger
+logger.addHandler(file_handler)
 
 class Nexus:
     """The Nexus utility class"""
@@ -49,6 +67,7 @@ class Nexus:
             )
             self.NexStr = "connected"
             self.handpad.display("Found Nexus", "via USB", "")
+            logger.info("Found Nexus via USB")
             time.sleep(0.2)
             self.nexus_link = "USB"
         except:
@@ -68,18 +87,22 @@ class Nexus:
                     print("Connected to Nexus in", str(s.recv(15), "ascii"), "via wifi")
                     self.NexStr = "connected"
                     self.handpad.display("Found Nexus", "via WiFi", "")
+                    logger.info("Found Nexus via WiFi")
                     time.sleep(1)
                     self.nexus_link = "Wifi"
             except:
                 print("no USB or Wifi link to Nexus")
+                logger.error("no USB or Wifi link to Nexus")
                 try:
                     print("Trying to start eFinder Live")
                     self.handpad.display("Nexus not found", "Will try", "eFinder Live")
+                    logger.info("Nexus not found Will try eFinder Live")
                     time.sleep(1)
                     subprocess.Popen(["venv-efinder/bin/python","Solver/eFinder_Live.py"])
                 except:
                     print("Failed to start eFinder Live")
                     self.handpad.display("eFinder Live", "Can't start", "")
+                    logger.error("eFinder Live Can't start")
                 sys.exit(0)
 
     def write(self, txt: str) -> None:
@@ -96,6 +119,7 @@ class Nexus:
                 s.connect((self.HOST, self.PORT))
                 s.send(bytes(txt.encode("ascii")))
         print("sent", txt, "to Nexus")
+        logger.info("sent" + txt + " to Nexus")
 
     def get(self, txt: str) -> str:
         """Receive a message from the Nexus DSC
@@ -137,6 +161,7 @@ class Nexus:
             " local offset:",
             local_offset,
         )
+        logger.info("Nexus reports: local datetime as" + local_date + local_time + " local offset:" + str(local_offset))
         date_parts = local_date.split("/")
         local_date = date_parts[0] + "/" + date_parts[1] + "/20" + date_parts[2]
         dt_str = local_date + " " + local_time
@@ -149,8 +174,10 @@ class Nexus:
         p = self.get(":GW#")
         if p[1] != "T":
             self.handpad.display("Nexus reports", "not aligned yet", "")
+            logger.info("Nexus reports not aligned yet")
         else:
             self.handpad.display("eFinder ready", "Nexus report " + p[0:3], "")
+            logger.info("eFinder ready Nexus report " + p[0:3])
             self.aligned = True
         time.sleep(0.2)
 
@@ -178,11 +205,12 @@ class Nexus:
             self.short = ra[0]+ra[1]+dec[0]+dec[1]
         except:
             print('read_altAz error:',ra,dec)
-        
-        
+            logger.error('read_altAz error:' + ra + dec)
+
+
         if arr is not None:
             return arr
-        
+
     def get_location(self):
         """Returns the location in space of the observer
 
@@ -190,7 +218,7 @@ class Nexus:
         location: The location
         """
         return self.location
-    
+
     def get_site(self):
         """Returns the location on earth of the observer
 
@@ -198,7 +226,7 @@ class Nexus:
         location: The site
         """
         return self.site
-    
+
     def get_long(self):
         """Returns the longitude of the observer
 
@@ -276,14 +304,14 @@ class Nexus:
         Parameters:
         scope_alt: The altitude of the telescope"""
         self.scope_alt = scope_alt
-    '''   
+    '''
     def get_lunar_rates(self):
         t = self.ts.now()
         a = self.get_location().at(t).observe(self.moon).apparent()
         alt, az, distance, alt_rate, az_rate, range_rate = (a.frame_latlon_and_rates(self.site))
         ra,dec,d = a.radec()
         return (ra.hours,dec.degrees,alt.degrees,alt_rate.arcseconds.per_second,az_rate.arcseconds.per_second)
-    
+
     def get_rate(self,ra,dec):
         t = self.ts.now()
         scope = Star(ra_hours = ra,dec_degrees = dec)
