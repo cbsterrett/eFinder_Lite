@@ -363,7 +363,9 @@ def readTarget():
     goto_ra = nexus.get(":Gr#")
     if (goto_ra[0:2] == "00" and goto_ra[3:5] == "00"):  # not a valid goto target set yet.
         handpad.display("no GoTo target","set yet","")
-        logger.error("no GoTo target" + ' ' + "set yet")
+        logger.error("no GoTo target set yet")
+        time.sleep(1)
+        raise ValueError("no GoTo Target set yet")
         return
     goto_dec = nexus.get(":Gd#")
     ra = goto_ra.split(":")
@@ -381,7 +383,10 @@ def goto():
     handpad.display("Starting", "GoTo", "")
     logger.info("Starting GoTo")
     gotoFlag = True
-    readTarget()
+    try:
+        readTarget()
+    except ValueError:
+        return
     if gotoDistant():
         if sDog == True:
             nexus.write(":Sr" + goto_ra + "#")
