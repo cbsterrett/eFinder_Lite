@@ -65,6 +65,7 @@ class Nexus:
                 str(self.ser.read(self.ser.in_waiting), "ascii"),
                 "via USB",
             )
+            logger.info("Connected to Nexus in " + str(self.ser.read(self.ser.in_waiting), "ascii") + "via USB")
             self.NexStr = "connected"
             self.handpad.display("Found Nexus", "via USB", "")
             logger.info("Found Nexus via USB")
