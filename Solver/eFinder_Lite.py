@@ -418,7 +418,7 @@ def goto():
     gotoFlag = False
     handpad.display("Finished", " GoTo++", "")
     logger.info("Finished GoTo++")
-    go_solve()
+    #go_solve()
 
 
 def getRadec():
